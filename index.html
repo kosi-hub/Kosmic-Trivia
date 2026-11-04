@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kosmic Trivia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Barlow:wght@500;600;700;800&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: a one-screen game-show stage. Scoreboard on top; the bulb-lit wheel, the clue board or the question card in the middle; one big gold button at the bottom. */
+  --stage:#0f1830;
+  --panel:#18244a;
+  --ink:#fff6e5;
+  --muted:#a6b3d6;
+  --gold:#ffc93c;
+  --line:rgba(255,255,255,.12);
+  --card:#fffaf0;
+  --card-ink:#14122b;
+  --board:#2446d1;
+  --good:#22a86a;
+  --bad:#e0443c;
+  --display:'Bungee','Arial Black',Impact,sans-serif;
+  --body:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --narrow:'Barlow Condensed','Arial Narrow',var(--body);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{height:100%;margin:0}
+body{
+  background-color:var(--stage);
+  background-image:radial-gradient(ellipse 85% 55% at 50% 40%, #22346c 0%, rgba(15,24,48,0) 72%);
+  color:var(--ink);
+  font-family:var(--body);
+  overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid #fff;outline-offset:3px}
+
+.app{height:100%;max-width:560px;margin:0 auto;padding:12px 16px 16px;display:flex;flex-direction:column;gap:12px}
+
+/* Scoreboard */
+.hud{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:14px;min-height:64px;padding:10px 12px 10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:16px}
+.hearts{display:flex;gap:3px}
+.heart{width:26px;height:26px;display:block}
+.heart path{fill:#ff4f6d;stroke:#ff4f6d;stroke-width:1.5}
+.heart.lost path{fill:transparent;stroke:#4a5a86}
+.heart.hit{animation:hit .5s ease}
+@keyframes hit{0%{transform:scale(1)}30%{transform:scale(1.35) rotate(-10deg)}100%{transform:scale(1)}}
+.stat{display:flex;flex-direction:column;line-height:1;gap:3px}
+.stat.center{align-items:center}
+.stat.right{align-items:flex-end}
+.lbl{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.val{font-family:var(--display);font-size:1.25rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.val.neg{color:#ff8a82}
+.val.pop{animation:pop .4s ease}
+@keyframes pop{40%{transform:scale(1.25);color:var(--gold)}}
+.icon-btn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:transparent;display:grid;place-items:center;cursor:pointer}
+.icon-btn svg{width:20px;height:20px}
+
+/* Views */
+.view{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+#questionView{justify-content:flex-start;overflow-y:auto;padding-bottom:4px}
+#boardView{justify-content:flex-start;gap:12px}
+
+.progress{display:flex;align-items:center;gap:10px}
+.pips{display:flex;gap:6px}
+.pip{width:12px;height:12px;border-radius:50%;background:#2b3a6b;border:1px solid #3b4c84}
+.pip.on{background:var(--gold);border-color:var(--gold);box-shadow:0 0 8px rgba(255,201,60,.7)}
+
+/* The wheel */
+.wheel-wrap{position:relative;width:min(100%, 52vh, 400px);aspect-ratio:1/1;flex:none}
+#bulbs{position:absolute;inset:0;width:100%;height:100%}
+#wheel{position:absolute;left:7.5%;top:7.5%;width:85%;height:85%;will-change:transform}
+.hub{position:absolute;left:50%;top:50%;width:25%;height:25%;transform:translate(-50%,-50%);border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #fff4c9 0%, var(--gold) 52%, #c98d10 100%);
+  border:4px solid var(--ink);box-shadow:0 4px 0 #8f6106, 0 10px 26px rgba(0,0,0,.45);
+  font-family:var(--display);font-size:clamp(.85rem, 4.2vw, 1.15rem);color:#4a2f00;cursor:pointer;padding:0}
+.hub:active{transform:translate(-50%,-46%);box-shadow:0 1px 0 #8f6106}
+.hub:disabled{cursor:default}
+.pointer{position:absolute;left:50%;top:-1.5%;width:13%;height:15%;transform:translateX(-50%);transform-origin:50% 22%;filter:drop-shadow(0 3px 3px rgba(0,0,0,.5))}
+.pointer.tick{animation:nudge .12s ease-out}
+@keyframes nudge{40%{rotate:-16deg}100%{rotate:0deg}}
+.hint{margin:0;min-height:1.6em;font-family:var(--display);font-size:1.1rem;text-align:center;color:var(--muted)}
+
+.big-btn{font-family:var(--display);font-size:1.45rem;letter-spacing:.03em;color:#3b2600;background:var(--gold);border:0;border-radius:999px;
+  padding:14px 44px;min-width:210px;cursor:pointer;box-shadow:0 5px 0 #a8760b, 0 12px 26px rgba(0,0,0,.35);transition:transform .08s, box-shadow .08s}
+.big-btn:active{transform:translateY(4px);box-shadow:0 1px 0 #a8760b}
+.big-btn:disabled{opacity:.45;cursor:default;transform:none}
+.ghost-btn{background:none;border:1px solid var(--line);border-radius:999px;padding:10px 18px;font-weight:700;font-size:.98rem;color:var(--ink);cursor:pointer}
+.ghost-btn:active{background:rgba(255,255,255,.06)}
+
+/* The clue board */
+.board{width:100%;flex:1;min-height:0;max-height:620px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:auto repeat(5,minmax(42px,1fr));gap:5px}
+.bhead{display:flex;align-items:center;justify-content:center;text-align:center;min-height:48px;padding:6px 2px;border-radius:8px;background:var(--panel);border-bottom:4px solid var(--c);
+  font:800 clamp(.56rem, 2.5vw, .9rem)/1.02 var(--narrow);text-transform:uppercase;letter-spacing:0;overflow:hidden;text-wrap:balance}
+.tile{min-width:0;padding:0;border:0;border-radius:8px;cursor:pointer;
+  background:linear-gradient(#2a50e0, #1b37b0);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14), 0 3px 0 #0e1f6e;
+  font-family:var(--display);font-size:clamp(.72rem, 3.4vw, 1.25rem);color:var(--gold);text-shadow:0 2px 0 #0a1450}
+.tile:active{transform:translateY(2px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14), 0 1px 0 #0e1f6e}
+.tile:disabled{background:#131c3d;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);cursor:default;transform:none}
+.board-foot{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.board-foot .big-btn{font-size:1.15rem;padding:12px 28px;min-width:0}
+
+/* Question card */
+.card{--cat:#2fbf7a;width:100%;background:var(--card);color:var(--card-ink);border-radius:20px;border-top:10px solid var(--cat);
+  padding:16px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 34px rgba(0,0,0,.4);animation:rise .35s ease-out}
+@keyframes rise{from{transform:translateY(18px);opacity:.3}}
+.card-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.chip{font-family:var(--display);font-size:.85rem;background:var(--cat);color:var(--card-ink);padding:6px 12px;border-radius:999px}
+.timer-num{font-family:var(--display);font-size:1.2rem;font-variant-numeric:tabular-nums;color:#5d5a72}
+.card.hurry .timer-num{color:var(--bad)}
+.timer{height:10px;background:#ebe2cd;border-radius:999px;overflow:hidden}
+.timer-fill{height:100%;width:100%;background:var(--cat);transform-origin:left center}
+.card.hurry .timer-fill{background:var(--bad)}
+.q{margin:2px 0;font-weight:800;font-size:clamp(1.25rem, 5.4vw, 1.6rem);line-height:1.2;text-wrap:balance}
+.q:focus{outline:none}
+.answers{display:grid;gap:10px}
+.ans{display:flex;align-items:center;gap:12px;width:100%;min-height:54px;padding:10px 14px;text-align:left;
+  font:600 1.08rem/1.2 var(--body);color:var(--card-ink);background:#fff;border:2px solid #e2d8c2;border-radius:14px;box-shadow:0 3px 0 #e2d8c2;cursor:pointer}
+.ans:active{transform:translateY(2px);box-shadow:0 1px 0 #e2d8c2}
+.ans:disabled{cursor:default;transform:none}
+.ans .key{flex:none;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-family:var(--display);font-size:.8rem;background:#f1e9d6;color:#6b6450}
+.ans.right{background:var(--good);border-color:#167c4d;color:#fff;box-shadow:0 3px 0 #167c4d}
+.ans.wrong{background:var(--bad);border-color:#a52b25;color:#fff;box-shadow:0 3px 0 #a52b25}
+.ans.right .key,.ans.wrong .key{background:rgba(255,255,255,.25);color:#fff}
+.ans.dim{opacity:.5}
+.feedback{margin:0;min-height:1.4em;font-family:var(--display);font-size:1.15rem;text-align:center}
+.feedback.good{color:#5fe0a2}
+.feedback.bad{color:#ff8a82}
+.feedback small{display:block;margin-top:4px;font-family:var(--body);font-weight:600;font-size:1rem;color:var(--ink)}
+
+/* Overlays */
+.overlay{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:16px;background:rgba(7,11,26,.74);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);overflow-y:auto}
+.panel{width:min(100%, 420px);background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:24px 18px 20px;
+  display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.5);animation:panelIn .3s ease-out}
+@keyframes panelIn{from{transform:scale(.92);opacity:0}}
+.logo{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(2.6rem, 14vw, 3.6rem);line-height:.92;letter-spacing:.01em}
+.logo span{display:inline-block;text-shadow:0 4px 0 rgba(0,0,0,.35)}
+.panel h2{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(1.8rem, 9vw, 2.4rem);line-height:1;text-wrap:balance}
+.panel p{margin:0;font-size:1.05rem;line-height:1.4;color:var(--ink)}
+.panel .sub{color:var(--muted)}
+.pick-label{font-family:var(--display);font-size:.95rem;color:var(--muted)}
+.panel .deal-note{margin-top:-10px;font-size:.95rem}
+.modes{display:grid;gap:10px;width:100%}
+.mode-btn{display:grid;grid-template-columns:52px 1fr;gap:14px;align-items:center;width:100%;padding:14px;text-align:left;cursor:pointer;
+  background:#101a38;border:2px solid var(--line);border-radius:18px;box-shadow:0 4px 0 #0a1128}
+.mode-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #0a1128}
+.mode-btn:hover{border-color:rgba(255,201,60,.6)}
+.mode-icon{width:52px;height:52px;border-radius:50%;
+  background:conic-gradient(#2fbf7a 0 51deg, #f5862a 0 103deg, #3b8fea 0 154deg, #ffcf33 0 206deg, #ec4f92 0 257deg, #7a4cd9 0 309deg, #e5513f 0 360deg);
+  box-shadow:0 0 0 3px var(--gold)}
+.mode-icon.grid{border-radius:10px;box-shadow:none;background:none;display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.mode-icon.grid i{border-radius:3px;background:var(--board)}
+.mode-icon.grid i:nth-child(-n+3){background:var(--panel);border-bottom:3px solid var(--gold)}
+.mode-text{display:flex;flex-direction:column;gap:4px}
+.mode-title{font-family:var(--display);font-size:1.12rem;line-height:1.1}
+.mode-desc{font-size:.95rem;line-height:1.3;color:var(--muted)}
+.mode-best{font-size:.85rem;font-weight:700;color:var(--gold)}
+.best{font-size:.95rem;color:var(--muted)}
+.best b{font-family:var(--display);font-weight:400;color:var(--gold);font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.stats div{background:#101a38;border-radius:14px;padding:12px 6px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.stats .val{font-size:clamp(1.05rem, 5vw, 1.4rem)}
+.newbest{font-family:var(--display);color:var(--gold);font-size:1.05rem}
+.pick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.pick-btn{min-height:58px;border:0;border-radius:14px;background:var(--c);color:var(--card-ink);font-family:var(--display);font-size:.95rem;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+.pick-btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
+.crown-badge{width:64px;height:52px}
+.wager-amt{font-family:var(--display);font-size:clamp(2.4rem, 13vw, 3.2rem);line-height:1;color:var(--gold);font-variant-numeric:tabular-nums}
+.wager-range{width:100%;height:32px;accent-color:var(--gold);cursor:pointer}
+.wager-ends{display:flex;justify-content:space-between;width:100%;margin-top:-10px;font-size:.85rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.wager-quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.btn-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px}
+
+@media (max-height:620px){
+  .wheel-wrap{width:min(100%, 46vh, 400px)}
+  .big-btn{padding:11px 36px;font-size:1.25rem}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="hud">
+    <div class="hearts" id="hearts" role="img" aria-label="3 lives left"></div>
+    <div class="stat center"><span class="lbl" id="midLbl">Level</span><span class="val" id="midVal">1</span></div>
+    <div class="stat right"><span class="lbl">Score</span><span class="val" id="score">0</span></div>
+    <button class="icon-btn" id="muteBtn" type="button" aria-label="Turn sound off"></button>
+  </header>
+
+  <section class="view" id="wheelView" aria-label="Wheel">
+    <div class="progress">
+      <span class="lbl">Next level</span>
+      <div class="pips" id="pips" role="img" aria-label="0 of 5 correct this level"></div>
+    </div>
+    <div class="wheel-wrap" id="wheelWrap">
+      <canvas id="bulbs" aria-hidden="true"></canvas>
+      <canvas id="wheel" role="img" aria-label="Category wheel: Science, Sports, Geography, History, Pop Culture, Crown, Art and Books"></canvas>
+      <svg class="pointer" id="pointer" viewBox="0 0 40 46" aria-hidden="true">
+        <path d="M20 44 L4 10 A16 16 0 0 1 36 10 Z" fill="#ffc93c" stroke="#14122b" stroke-width="3" stroke-linejoin="round"/>
+        <circle cx="20" cy="13" r="5" fill="#14122b"/>
+      </svg>
+      <button class="hub" id="hubBtn" type="button" aria-label="Spin the wheel">SPIN</button>
+    </div>
+    <p class="hint" id="hint" aria-live="polite">Tap spin to get a category</p>
+    <button class="big-btn" id="spinBtn" type="button">Spin</button>
+  </section>
+
+  <section class="view" id="boardView" aria-label="Clue board" hidden>
+    <div class="board" id="board"></div>
+    <div class="board-foot">
+      <span class="lbl" id="boardNote">Pick a category and an amount</span>
+      <button class="ghost-btn" id="finishBtn" type="button">Skip to final</button>
+    </div>
+  </section>
+
+  <section class="view" id="questionView" aria-label="Question" hidden>
+    <div class="card" id="card">
+      <div class="card-top">
+        <span class="chip" id="catChip">Science</span>
+        <span class="timer-num" id="timerNum" aria-label="Seconds left">20</span>
+      </div>
+      <div class="timer" aria-hidden="true"><div class="timer-fill" id="timerFill"></div></div>
+      <h2 class="q" id="qText" tabindex="-1"></h2>
+      <div class="answers" id="answers"></div>
+    </div>
+    <p class="feedback" id="feedback" aria-live="polite"></p>
+    <button class="big-btn" id="nextBtn" type="button" hidden>Spin again</button>
+  </section>
+</main>
+
+<div class="overlay" id="startOverlay" role="dialog" aria-modal="true" aria-labelledby="logo">
+  <div class="panel">
+    <h1 class="logo" id="logo" aria-label="Kosmic Trivia">
+      <span style="color:#2fbf7a;transform:rotate(-4deg)">K</span><span style="color:#f5862a;transform:rotate(3deg)">O</span><span style="color:#3b8fea;transform:rotate(-2deg)">S</span><span style="color:#ffcf33;transform:rotate(4deg)">M</span><span style="color:#ec4f92;transform:rotate(-3deg)">I</span><span style="color:#e5513f;transform:rotate(2deg)">C</span><br>
+      <span>TRIVIA</span>
+    </h1>
+    <span class="pick-label">Choose how to play</span>
+    <p class="sub deal-note">Every game deals 6 of 12 categories.</p>
+    <div class="modes">
+      <button class="mode-btn" id="modeSpin" type="button">
+        <span class="mode-icon" aria-hidden="true"></span>
+        <span class="mode-text">
+          <span class="mode-title">Spin the wheel</span>
+          <span class="mode-desc">The wheel picks your category, or you pick on the crown. 3 hearts. Every level brings harder questions and a faster clock.</span>
+          <span class="mode-best" id="bestSpinLine">Best: 0</span>
+        </span>
+      </button>
+      <button class="mode-btn" id="modeBoard" type="button">
+        <span class="mode-icon grid" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        <span class="mode-text">
+          <span class="mode-title">Pick from the board</span>
+          <span class="mode-desc">Choose a category and a dollar amount. Wrong answers cost money. Find the Daily Double, then bet in the final.</span>
+          <span class="mode-best" id="bestBoardLine">Best: $0</span>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="pickOverlay" role="dialog" aria-modal="true" aria-labelledby="pickTitle" hidden>
+  <div class="panel">
+    <svg class="crown-badge" viewBox="0 0 64 52" aria-hidden="true">
+      <path d="M6 44 L6 12 L20 28 L32 6 L44 28 L58 12 L58 44 Z" fill="#ffc93c" stroke="#14122b" stroke-width="3" stroke-linejoin="round"/>
+      <rect x="6" y="40" width="52" height="8" rx="2" fill="#e0a514" stroke="#14122b" stroke-width="3"/>
+    </svg>
+    <h2 id="pickTitle">Crown!</h2>
+    <p class="sub">Pick any category for this question.</p>
+    <div class="pick-grid" id="pickGrid"></div>
+  </div>
+</div>
+
+<div class="overlay" id="wagerOverlay" role="dialog" aria-modal="true" aria-labelledby="wagerTitle" hidden>
+  <div class="panel">
+    <p class="lbl" id="wagerKicker">Daily Double</p>
+    <h2 id="wagerTitle">Daily Double!</h2>
+    <p class="sub" id="wagerText"></p>
+    <output class="wager-amt" id="wagerAmt" for="wagerRange">$500</output>
+    <input class="wager-range" id="wagerRange" type="range" min="0" max="1000" step="100" value="500" aria-label="Your bet">
+    <div class="wager-ends"><span id="wagerMin">$0</span><span id="wagerMax">$1,000</span></div>
+    <div class="wager-quick">
+      <button class="ghost-btn" type="button" data-w="min">Lowest</button>
+      <button class="ghost-btn" type="button" data-w="half">Half</button>
+      <button class="ghost-btn" type="button" data-w="max">All in</button>
+    </div>
+    <button class="big-btn" id="wagerBtn" type="button">Lock it in</button>
+  </div>
+</div>
+
+<div class="overlay" id="levelOverlay" role="dialog" aria-modal="true" aria-labelledby="levelTitle" hidden>
+  <div class="panel">
+    <p class="lbl">Level up</p>
+    <h2 id="levelTitle">Level 2</h2>
+    <p id="levelText"></p>
+    <button class="big-btn" id="levelBtn" type="button">Keep going</button>
+  </div>
+</div>
+
+<div class="overlay" id="overOverlay" role="dialog" aria-modal="true" aria-labelledby="overTitle" hidden>
+  <div class="panel">
+    <h2 id="overTitle">Game over</h2>
+    <p class="sub" id="overNote" hidden></p>
+    <p class="newbest" id="newBest" hidden>New best score!</p>
+    <div class="stats">
+      <div><span class="lbl" id="stat1Lbl">Score</span><span class="val" id="stat1">0</span></div>
+      <div><span class="lbl" id="stat2Lbl">Level</span><span class="val" id="stat2">1</span></div>
+      <div><span class="lbl" id="stat3Lbl">Correct</span><span class="val" id="stat3">0</span></div>
+    </div>
+    <p class="best" id="overBest">Best score: <b>0</b></p>
+    <div class="btn-row">
+      <button class="big-btn" id="againBtn" type="button">Play again</button>
+      <button class="ghost-btn" id="switchBtn" type="button">Switch mode</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const store = {
+    get(k, d){ try{ const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } },
+    set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+  };
+
+  // ---------- Categories & questions ----------
+  // 12 categories; every game deals 6 of them. Colours belong to the 6 seats, not the categories.
+  const CATS = {
+    science:{ name:'Science' },  history:{ name:'History' },     geo:{ name:'Geography' },
+    sports:{ name:'Sports' },    film:{ name:'Movies & TV' },    horror:{ name:'Horror' },
+    music:{ name:'Music' },      food:{ name:'Food & Drink' },   animals:{ name:'Animals' },
+    words:{ name:'Words' },      myth:{ name:'Mythology' },      art:{ name:'Art & Books' },
+    crown:{ name:'Crown' }
+  };
+  const SEAT_COLORS = ['#2fbf7a','#f5862a','#3b8fea','#ffcf33','#ec4f92','#e5513f'];
+  const CROWN_COLOR = '#7a4cd9';
+
+  // [difficulty 1-5, question, correct answer, wrong, wrong, wrong]
+  const Q = {
+    science:[
+      [1,"Which gas makes up most of Earth's air?","Nitrogen","Oxygen","Carbon dioxide","Argon"],
+      [1,"What is the chemical symbol for gold?","Au","Ag","Gd","Go"],
+      [1,"Which part of the cell is known as its powerhouse?","Mitochondria","Nucleus","Golgi apparatus","Ribosome"],
+      [2,"How many bones are in the adult human body?","206","186","226","250"],
+      [2,"Which blood type is called the universal donor?","O negative","AB positive","A negative","B positive"],
+      [2,"What is the most common element in the universe?","Hydrogen","Helium","Oxygen","Carbon"],
+      [2,"What is the chemical symbol for sodium?","Na","So","Sd","S"],
+      [2,"Which organ makes insulin?","The pancreas","The liver","The kidneys","The spleen"],
+      [2,"Who proposed evolution by natural selection, alongside Alfred Russel Wallace?","Charles Darwin","Gregor Mendel","Jean-Baptiste Lamarck","Carl Linnaeus"],
+      [3,"What is the pH of pure water?","7","0","5","14"],
+      [3,"About how long does sunlight take to reach Earth?","About 8 minutes","About 8 seconds","About 1 hour","About 1 day"],
+      [3,"What is the unit of electrical resistance?","Ohm","Volt","Ampere","Watt"],
+      [3,"Who discovered penicillin in 1928?","Alexander Fleming","Louis Pasteur","Joseph Lister","Edward Jenner"],
+      [3,"What is the chemical formula for table salt?","NaCl","KCl","NaOH","CaCl₂"],
+      [3,"Which element has the symbol Fe?","Iron","Fluorine","Lead","Francium"],
+      [3,"Where in a plant cell does photosynthesis happen?","Chloroplasts","Mitochondria","Ribosomes","Vacuoles"],
+      [3,"What is it called when a cell divides into two identical cells?","Mitosis","Meiosis","Osmosis","Diffusion"],
+      [3,"Which gas glows red-orange in classic advertising signs?","Neon","Argon","Xenon","Krypton"],
+      [4,"Roughly how fast does light travel?","300,000 km per second","30,000 km per second","3,000 km per second","3 million km per second"],
+      [4,"Absolute zero is 0 kelvin. What is that in Celsius?","−273.15°C","−100°C","−459.67°C","−212°C"],
+      [4,"How many pairs of chromosomes do humans usually have?","23","46","22","24"],
+      [4,"What is the main ingredient of natural gas?","Methane","Propane","Butane","Ethane"],
+      [4,"Which gland in the neck controls your metabolism?","Thyroid","Adrenal","Pituitary","Thymus"],
+      [4,"Who published the first widely used periodic table in 1869?","Dmitri Mendeleev","John Dalton","Antoine Lavoisier","Niels Bohr"],
+      [4,"Which part of the brain coordinates balance and movement?","Cerebellum","Cerebrum","Medulla","Hypothalamus"],
+      [4,"Which planet spins tipped on its side?","Uranus","Neptune","Venus","Saturn"],
+      [5,"Which metal conducts electricity best?","Silver","Copper","Gold","Aluminium"],
+      [5,"What is the study of fungi called?","Mycology","Phycology","Entomology","Pathology"],
+      [5,"Which element has the symbol W?","Tungsten","Vanadium","Xenon","Tellurium"],
+      [5,"What is the most common element in Earth's crust?","Oxygen","Silicon","Iron","Aluminium"],
+      [5,"What is the smallest bone in the human body?","The stapes","The incus","The malleus","The hyoid"],
+      [5,"Which planet takes the longest to spin once on its axis?","Venus","Mercury","Jupiter","Neptune"],
+      [5,"Roughly how fast does sound travel through air?","About 340 metres per second","About 34 metres per second","About 3,400 metres per second","About 34,000 metres per second"],
+      [5,"Which non-metal element is a liquid at room temperature?","Bromine","Iodine","Chlorine","Fluorine"]
+    ],
+    history:[
+      [1,"In what year did World War II end?","1945","1944","1939","1950"],
+      [1,"In what year did the Berlin Wall fall?","1989","1991","1985","1975"],
+      [1,"Who was the first woman to win a Nobel Prize?","Marie Curie","Rosalind Franklin","Florence Nightingale","Ada Lovelace"],
+      [1,"Which Roman city was buried by Mount Vesuvius in 79 AD?","Pompeii","Athens","Carthage","Troy"],
+      [1,"Which empire did Genghis Khan found?","The Mongol Empire","The Ottoman Empire","The Mughal Empire","The Persian Empire"],
+      [2,"Who led Ghana to independence in 1957?","Kwame Nkrumah","Jomo Kenyatta","Nelson Mandela","Haile Selassie"],
+      [2,"Which civilization built Machu Picchu?","The Inca","The Aztecs","The Maya","The Olmecs"],
+      [2,"Which charter did King John of England agree to in 1215?","Magna Carta","The Bill of Rights","The Domesday Book","The Treaty of Paris"],
+      [2,"In which city was the Declaration of Independence signed?","Philadelphia","Boston","New York","Washington, D.C."],
+      [2,"What was the first artificial satellite, launched in 1957?","Sputnik 1","Apollo 1","Explorer 1","Vostok 1"],
+      [2,"Whose nearly untouched tomb did Howard Carter find in 1922?","Tutankhamun","Ramses II","Khufu","Cleopatra"],
+      [2,"Who was the first emperor of Rome?","Augustus","Julius Caesar","Nero","Caligula"],
+      [3,"What do historians call the eastern Roman Empire, ruled from Constantinople?","The Byzantine Empire","The Ottoman Empire","The Persian Empire","The Holy Roman Empire"],
+      [3,"Which ruler of the Mali Empire is called one of the richest people in history?","Mansa Musa","Sundiata Keita","Shaka Zulu","Askia Muhammad"],
+      [3,"Which queen ruled England from 1558 to 1603?","Elizabeth I","Mary I","Victoria","Anne"],
+      [3,"In what year did the French Revolution begin?","1789","1776","1799","1812"],
+      [3,"Suleiman the Magnificent ruled which empire?","The Ottoman Empire","The Mughal Empire","The Persian Empire","The Byzantine Empire"],
+      [3,"Who was the first President of independent Kenya?","Jomo Kenyatta","Kwame Nkrumah","Julius Nyerere","Daniel arap Moi"],
+      [3,"Which 1863 battle is seen as the turning point of the US Civil War?","Gettysburg","Antietam","Bull Run","Shiloh"],
+      [3,"The Rosetta Stone helped scholars read which writing system?","Egyptian hieroglyphs","Cuneiform","Linear B","Maya glyphs"],
+      [3,"Which treaty formally ended World War I with Germany?","The Treaty of Versailles","The Treaty of Paris","The Treaty of Ghent","The Peace of Westphalia"],
+      [3,"Which people built the city of Tenochtitlan?","The Aztecs","The Maya","The Inca","The Olmecs"],
+      [3,"Who was India's first Prime Minister?","Jawaharlal Nehru","Mahatma Gandhi","Indira Gandhi","Sardar Patel"],
+      [3,"What was the name of the ship Charles Darwin sailed on?","HMS Beagle","HMS Endeavour","HMS Victory","HMS Bounty"],
+      [4,"On which island did Napoleon die in exile?","Saint Helena","Elba","Corsica","Malta"],
+      [4,"Who was US president at the time of the Louisiana Purchase?","Thomas Jefferson","John Adams","James Madison","James Monroe"],
+      [4,"Most of the Great Wall standing today was built under which dynasty?","The Ming","The Qin","The Han","The Tang"],
+      [4,"The 1896 Battle of Adwa kept which country independent?","Ethiopia","Eritrea","Somalia","Sudan"],
+      [4,"Who was the first Black woman elected to the US Congress, in 1968?","Shirley Chisholm","Barbara Jordan","Fannie Lou Hamer","Maxine Waters"],
+      [4,"Who wrote The Communist Manifesto with Karl Marx?","Friedrich Engels","Vladimir Lenin","Leon Trotsky","Joseph Stalin"],
+      [4,"Which amendment abolished slavery in the United States?","The 13th","The 14th","The 15th","The 19th"],
+      [4,"In what year was the 19th Amendment, giving US women the vote, ratified?","1920","1918","1928","1965"],
+      [4,"In what year did Haiti declare independence?","1804","1776","1865","1821"],
+      [5,"Which ancient wonder stood in Alexandria, Egypt?","The Lighthouse","The Colossus","The Hanging Gardens","The Mausoleum"],
+      [5,"In what year did the Ottomans capture Constantinople?","1453","1204","1492","1683"],
+      [5,"Which pharaoh built the Great Pyramid of Giza?","Khufu","Khafre","Menkaure","Djoser"],
+      [5,"The ancient Kingdom of Aksum was centred in which modern country?","Ethiopia","Egypt","Sudan","Kenya"],
+      [5,"Which Asante queen mother led the 1900 War of the Golden Stool?","Yaa Asantewaa","Queen Nzinga","Queen Amina","Nana Asma'u"]
+    ],
+    geo:[
+      [1,"What is the capital of Australia?","Canberra","Sydney","Melbourne","Perth"],
+      [1,"What is the capital of Canada?","Ottawa","Toronto","Vancouver","Montreal"],
+      [1,"What is the highest mountain in Africa?","Kilimanjaro","Mount Kenya","Mount Stanley","Ras Dashen"],
+      [1,"Which river flows through Paris?","The Seine","The Thames","The Danube","The Rhine"],
+      [2,"What is the capital of Nigeria?","Abuja","Lagos","Kano","Ibadan"],
+      [2,"In which country is the city of Marrakech?","Morocco","Egypt","Tunisia","Algeria"],
+      [2,"Mount Everest sits on the border of Nepal and which country?","China","India","Bhutan","Pakistan"],
+      [2,"Lake Victoria is shared by Uganda, Kenya and which country?","Tanzania","Rwanda","Ethiopia","Malawi"],
+      [2,"What is the capital of Brazil?","Brasília","Rio de Janeiro","São Paulo","Salvador"],
+      [2,"Which African country was once called Abyssinia?","Ethiopia","Eritrea","Somalia","Sudan"],
+      [2,"What is the capital of Turkey?","Ankara","Istanbul","Izmir","Antalya"],
+      [2,"What is the largest lake in Africa?","Lake Victoria","Lake Tanganyika","Lake Malawi","Lake Chad"],
+      [3,"The Strait of Gibraltar separates Spain from which country?","Morocco","Algeria","Portugal","Tunisia"],
+      [3,"Lake Volta, one of the world's largest man-made lakes, is in which country?","Ghana","Nigeria","Mali","Burkina Faso"],
+      [3,"In which country is Timbuktu?","Mali","Niger","Chad","Senegal"],
+      [3,"What is the capital of New Zealand?","Wellington","Auckland","Christchurch","Queenstown"],
+      [3,"Which country has the most lakes?","Canada","Russia","United States","Finland"],
+      [3,"What is the capital of Switzerland?","Bern","Zurich","Geneva","Basel"],
+      [3,"Which African country has the largest population?","Nigeria","Ethiopia","Egypt","DR Congo"],
+      [3,"Which desert covers much of Botswana?","The Kalahari","The Namib","The Sahara","The Karoo"],
+      [3,"What is the capital of Vietnam?","Hanoi","Ho Chi Minh City","Huế","Da Nang"],
+      [4,"What is the longest river in Europe?","The Volga","The Danube","The Rhine","The Dnieper"],
+      [4,"The Atacama Desert is mostly in which country?","Chile","Peru","Argentina","Bolivia"],
+      [4,"What is the capital of Morocco?","Rabat","Casablanca","Marrakech","Fez"],
+      [4,"Lake Titicaca sits on the border of Peru and which country?","Bolivia","Chile","Ecuador","Argentina"],
+      [4,"Which country is completely surrounded by South Africa?","Lesotho","Eswatini","Botswana","Namibia"],
+      [4,"Which African country has three capital cities?","South Africa","Nigeria","Kenya","Egypt"],
+      [4,"The Prime Meridian runs through the port city of Tema in which country?","Ghana","Togo","Nigeria","Côte d'Ivoire"],
+      [4,"What is the capital of Kazakhstan?","Astana","Almaty","Tashkent","Bishkek"],
+      [5,"Which is the deepest lake in the world?","Lake Baikal","Lake Tanganyika","Lake Superior","Caspian Sea"],
+      [5,"Which US state has the longest coastline?","Alaska","Florida","California","Hawaii"],
+      [5,"Counting its overseas territories, which country has the most time zones?","France","Russia","United States","China"],
+      [5,"The Danube empties into which sea?","The Black Sea","The Mediterranean","The Baltic Sea","The Caspian Sea"],
+      [5,"What is the official capital of Tanzania?","Dodoma","Dar es Salaam","Arusha","Zanzibar City"],
+      [5,"What is the capital of Burkina Faso?","Ouagadougou","Bamako","Niamey","Lomé"],
+      [5,"What is the largest landlocked country in the world?","Kazakhstan","Mongolia","Chad","Bolivia"],
+      [5,"In Tanzania, Lake Malawi goes by what other name?","Lake Nyasa","Lake Kivu","Lake Turkana","Lake Albert"]
+    ],
+    sports:[
+      [1,"Which boxer called himself \"The Greatest\"?","Muhammad Ali","Joe Frazier","Mike Tyson","Sugar Ray Leonard"],
+      [1,"In tennis, what is a serve the opponent can't touch called?","An ace","A let","A smash","A volley"],
+      [1,"Which country is tennis star Rafael Nadal from?","Spain","Argentina","Italy","Portugal"],
+      [1,"In table tennis, how many points do you need to win a game?","11","21","15","10"],
+      [2,"Where were the first modern Olympic Games held in 1896?","Athens","Paris","London","Rome"],
+      [2,"In golf, what is one stroke under par called?","A birdie","An eagle","A bogey","An albatross"],
+      [2,"Which Grand Slam tennis tournament is played on clay?","The French Open","Wimbledon","The US Open","The Australian Open"],
+      [2,"Which country hosted the 2010 FIFA World Cup?","South Africa","Brazil","Germany","Qatar"],
+      [2,"Michael Jordan won all six of his NBA titles with which team?","Chicago Bulls","Washington Wizards","Los Angeles Lakers","Boston Celtics"],
+      [2,"Which city hosted the 2016 Summer Olympics?","Rio de Janeiro","London","Tokyo","Beijing"],
+      [2,"How long is a marathon?","26.2 miles","13.1 miles","30 miles","20 miles"],
+      [3,"How many minutes long is an NBA game, not counting overtime?","48","40","60","36"],
+      [3,"Which martial art's name means \"the gentle way\"?","Judo","Karate","Taekwondo","Kung fu"],
+      [3,"In table tennis, how many serves in a row does each player get?","2","5","1","3"],
+      [3,"What is a perfect score in ten-pin bowling?","300","200","250","500"],
+      [3,"How long is an Olympic swimming pool?","50 metres","25 metres","100 metres","75 metres"],
+      [3,"How many balls are in a standard over in cricket?","6","5","8","4"],
+      [3,"In table tennis, what is the score called at 10–10?","Deuce","Advantage","Match point","Let"],
+      [3,"How many players does a rugby union team have on the field?","15","13","11","12"],
+      [3,"In golf, what is two strokes under par on a hole called?","An eagle","A birdie","An albatross","A condor"],
+      [3,"How high off the ground is a basketball hoop?","10 feet","9 feet","11 feet","12 feet"],
+      [3,"What colour jersey does the Tour de France leader wear?","Yellow","Green","Polka dot","White"],
+      [4,"Which country won the first FIFA World Cup in 1930?","Uruguay","Brazil","Argentina","Italy"],
+      [4,"In snooker, how many points is the black ball worth?","7","5","6","10"],
+      [4,"How many Grand Slam singles titles did Serena Williams win?","23","22","24","20"],
+      [4,"What is the NFL championship trophy called?","The Vince Lombardi Trophy","The Larry O'Brien Trophy","The Stanley Cup","The Commissioner's Trophy"],
+      [4,"In table tennis, what is a serve that clips the net and lands in called?","A let","A fault","A net ball","A deuce"],
+      [4,"What is the highest score possible with three darts?","180","150","170","200"],
+      [4,"What colour is the centre of an Olympic archery target?","Gold","Red","Black","White"],
+      [5,"In which country was table tennis invented?","England","China","Japan","Sweden"],
+      [5,"How wide is an official table tennis ball?","40 mm","38 mm","44 mm","35 mm"],
+      [5,"James Naismith, who invented basketball, was born in which country?","Canada","United States","England","Scotland"],
+      [5,"Which country has won the most Rugby World Cups?","South Africa","New Zealand","Australia","England"]
+    ],
+    film:[
+      [1,"Wakanda is the home country in which movie?","Black Panther","Thor","Aquaman","Avatar"],
+      [1,"Who played Jack in Titanic (1997)?","Leonardo DiCaprio","Matt Damon","Brad Pitt","Johnny Depp"],
+      [1,"In which show do families fight over the Iron Throne?","Game of Thrones","The Witcher","Vikings","House of Cards"],
+      [1,"In The Lion King, what is Simba's father's name?","Mufasa","Scar","Rafiki","Zazu"],
+      [1,"Which movie made the line \"I'll be back\" famous?","The Terminator","RoboCop","Die Hard","Predator"],
+      [2,"Which TV show is set in Hawkins, Indiana?","Stranger Things","Dark","Riverdale","The OA"],
+      [2,"Who directed Jurassic Park?","Steven Spielberg","James Cameron","George Lucas","Ridley Scott"],
+      [2,"What colour is the pill Neo takes in The Matrix?","Red","Blue","Green","White"],
+      [2,"Which streaming service released Squid Game?","Netflix","Hulu","Amazon Prime Video","Disney+"],
+      [2,"In the 1939 Wizard of Oz film, what kind of slippers does Dorothy wear?","Ruby slippers","Silver slippers","Glass slippers","Golden slippers"],
+      [2,"Who played the Joker in The Dark Knight (2008)?","Heath Ledger","Joaquin Phoenix","Jared Leto","Jack Nicholson"],
+      [2,"Who directed Pulp Fiction?","Quentin Tarantino","Martin Scorsese","Guy Ritchie","Robert Rodriguez"],
+      [2,"What paper company do the characters in The Office (US) work for?","Dunder Mifflin","Wernham Hogg","Sterling Cooper","Initech"],
+      [2,"What is Han Solo's ship called?","The Millennium Falcon","The Star Destroyer","The X-wing","Slave I"],
+      [3,"What is the coffee shop called in Friends?","Central Perk","The Daily Grind","Java Joe's","Central Brew"],
+      [3,"In what year did the first Toy Story come out?","1995","1998","1992","2001"],
+      [3,"Which was the first non-English-language film to win Best Picture?","Parasite","Roma","Crouching Tiger, Hidden Dragon","Life Is Beautiful"],
+      [3,"In Breaking Bad, what alias does Walter White use?","Heisenberg","Gus","Saul","Pinkman"],
+      [3,"Which movie features the character Tyler Durden?","Fight Club","Se7en","American Psycho","The Game"],
+      [3,"Which 1989 Spike Lee film takes place on one hot day in Bed-Stuy, Brooklyn?","Do the Right Thing","She's Gotta Have It","Malcolm X","Crooklyn"],
+      [3,"Which studio made Spirited Away?","Studio Ghibli","Toei Animation","Pixar","Madhouse"],
+      [3,"In Friends, what is Chandler's last name?","Bing","Geller","Green","Tribbiani"],
+      [3,"In what year was the first Star Wars film released?","1977","1980","1974","1983"],
+      [3,"Issa Rae's series Insecure is set in which city?","Los Angeles","Atlanta","New York","Chicago"],
+      [3,"In The Godfather, whose head ends up in a film producer's bed?","A horse's","A dog's","A pig's","A goat's"],
+      [4,"Who played Clarice Starling in The Silence of the Lambs (1991)?","Jodie Foster","Julianne Moore","Sigourney Weaver","Meryl Streep"],
+      [4,"Who directed Moonlight, the 2017 Best Picture winner?","Barry Jenkins","Jordan Peele","Ryan Coogler","Spike Lee"],
+      [4,"Who directed Spirited Away?","Hayao Miyazaki","Isao Takahata","Makoto Shinkai","Mamoru Hosoda"],
+      [4,"Which film includes the line \"Here's looking at you, kid\"?","Casablanca","Gone with the Wind","Citizen Kane","The Maltese Falcon"],
+      [4,"Who was the first Black woman to win the Oscar for Best Actress?","Halle Berry","Viola Davis","Whoopi Goldberg","Lupita Nyong'o"],
+      [4,"Who directed and starred in Citizen Kane?","Orson Welles","Charlie Chaplin","Alfred Hitchcock","John Huston"],
+      [4,"What was Disney's first full-length animated feature?","Snow White and the Seven Dwarfs","Pinocchio","Fantasia","Bambi"],
+      [5,"Which film won the very first Oscar for Best Picture?","Wings","Sunrise","The Jazz Singer","Metropolis"],
+      [5,"Which actor has won the most Oscars for Best Actor?","Daniel Day-Lewis","Jack Nicholson","Tom Hanks","Marlon Brando"],
+      [5,"Which was the first film to win all five major Oscars?","It Happened One Night","One Flew Over the Cuckoo's Nest","The Silence of the Lambs","Casablanca"]
+    ],
+    horror:[
+      [1,"In which film does Freddy Krueger attack people in their dreams?","A Nightmare on Elm Street","Halloween","Friday the 13th","Scream"],
+      [1,"Jason Voorhees is the killer in which horror franchise?","Friday the 13th","Halloween","Scream","Saw"],
+      [1,"Which 2017 Jordan Peele film follows Chris meeting his girlfriend's family?","Get Out","Us","Nope","Candyman"],
+      [1,"What is the name of the killer doll in Child's Play?","Chucky","Annabelle","Billy","Slappy"],
+      [2,"What is the hotel called in The Shining?","The Overlook","The Bates Motel","The Stanley","The Grand Budapest"],
+      [2,"In Psycho, where does Marion Crane stop for the night?","The Bates Motel","The Overlook Hotel","The Hilltop Inn","The Crane Motel"],
+      [2,"Who wrote the novel It?","Stephen King","Dean Koontz","Clive Barker","Anne Rice"],
+      [2,"What is the clown called in It?","Pennywise","Twisty","Art","Captain Spaulding"],
+      [2,"What is the masked killer called in Scream?","Ghostface","The Shape","Leatherface","The Creeper"],
+      [2,"Which 2019 Jordan Peele film features doubles called the Tethered?","Us","Nope","Get Out","Candyman"],
+      [2,"In A Quiet Place, the creatures hunt using what?","Sound","Sight","Smell","Heat"],
+      [2,"Who wrote the novel Frankenstein?","Mary Shelley","Bram Stoker","Edgar Allan Poe","Shirley Jackson"],
+      [3,"Who directed the original Halloween (1978)?","John Carpenter","Wes Craven","Sean Cunningham","Tobe Hooper"],
+      [3,"Who directed Hereditary (2018)?","Ari Aster","Robert Eggers","Jordan Peele","Mike Flanagan"],
+      [3,"What is the possessed girl's name in The Exorcist?","Regan","Carrie","Samara","Damien"],
+      [3,"In Saw, what is the puppet on the tricycle called?","Billy","Chucky","Jigsaw","Slappy"],
+      [3,"The Blair Witch Project made which filming style famous?","Found footage","Stop motion","Black and white","One continuous shot"],
+      [3,"Which country made the zombie film Train to Busan?","South Korea","Japan","China","Thailand"],
+      [3,"In The Ring (2002), how many days do you have after watching the tape?","Seven","Three","Five","Thirteen"],
+      [3,"Which film was sold with the tagline \"In space no one can hear you scream\"?","Alien","Event Horizon","The Thing","Predator"],
+      [3,"Who played Laurie Strode in the original Halloween?","Jamie Lee Curtis","Sigourney Weaver","Neve Campbell","Heather Langenkamp"],
+      [3,"Michael Myers' mask was made from a mask of which actor?","William Shatner","Boris Karloff","Vincent Price","Bela Lugosi"],
+      [4,"Who directed Night of the Living Dead (1968)?","George A. Romero","John Carpenter","Wes Craven","Tobe Hooper"],
+      [4,"Who directed The Texas Chain Saw Massacre (1974)?","Tobe Hooper","Wes Craven","John Carpenter","Sam Raimi"],
+      [4,"Which horror film won the Oscar for Best Picture?","The Silence of the Lambs","Get Out","The Exorcist","Jaws"],
+      [4,"What are the beings from the puzzle box in Hellraiser called?","Cenobites","Deadites","Gremlins","Xenomorphs"],
+      [4,"In The Evil Dead films, which book unleashes the demons?","The Necronomicon","The Book of Shadows","The Grimoire","The Codex"],
+      [4,"In Nope (2022), what does the Haywood family do for work?","Train horses for film sets","Run a diner","Run a theme park","Manage a motel"],
+      [5,"Which 1973 film was the first horror movie nominated for Best Picture?","The Exorcist","Rosemary's Baby","Jaws","The Omen"],
+      [5,"Who directed the original Candyman (1992)?","Bernard Rose","Clive Barker","Nia DaCosta","Wes Craven"],
+      [5,"Who directed the 1922 silent vampire film Nosferatu?","F. W. Murnau","Fritz Lang","Robert Wiene","Carl Theodor Dreyer"],
+      [5,"What is the demon called in The Exorcist?","Pazuzu","Valak","Bughuul","Paimon"],
+      [5,"In Hereditary, which demon king is the cult devoted to?","Paimon","Pazuzu","Valak","Baal"]
+    ],
+    music:[
+      [1,"Who is known as the King of Pop?","Michael Jackson","Prince","Elvis Presley","Stevie Wonder"],
+      [1,"John Lennon was a member of which band?","The Beatles","The Rolling Stones","Queen","The Who"],
+      [1,"What was Michael Jackson's 1982 album called?","Thriller","Bad","Off the Wall","Dangerous"],
+      [1,"Bob Marley is the most famous star of which music style?","Reggae","Calypso","Ska","Soca"],
+      [1,"Freddie Mercury was the lead singer of which band?","Queen","Genesis","The Police","Aerosmith"],
+      [2,"Which group did Beyoncé first become famous with?","Destiny's Child","TLC","En Vogue","SWV"],
+      [2,"How many keys does a standard piano have?","88","76","92","64"],
+      [2,"Which rapper's real name is Shawn Carter?","Jay-Z","Nas","Kanye West","Drake"],
+      [2,"Which island is Rihanna from?","Barbados","Jamaica","Trinidad","The Bahamas"],
+      [2,"Which singer is known as the Queen of Soul?","Aretha Franklin","Diana Ross","Etta James","Nina Simone"],
+      [2,"Hip-hop was born in which New York borough?","The Bronx","Brooklyn","Queens","Manhattan"],
+      [2,"The Notorious B.I.G. was from which borough?","Brooklyn","Queens","The Bronx","Staten Island"],
+      [2,"Who wrote the Moonlight Sonata?","Ludwig van Beethoven","Wolfgang Amadeus Mozart","Frédéric Chopin","Johann Sebastian Bach"],
+      [2,"What is the name of Prince's 1984 album and film?","Purple Rain","1999","Sign o' the Times","Controversy"],
+      [3,"Fela Kuti pioneered which genre?","Afrobeat","Highlife","Jùjú","Makossa"],
+      [3,"Highlife music grew up mainly in which country?","Ghana","Kenya","South Africa","Jamaica"],
+      [3,"Which group recorded \"Rapper's Delight\" in 1979?","The Sugarhill Gang","Run-DMC","Grandmaster Flash and the Furious Five","Public Enemy"],
+      [3,"Which instrument did Miles Davis play?","Trumpet","Saxophone","Piano","Trombone"],
+      [3,"Which Nigerian star released the album Made in Lagos?","Wizkid","Burna Boy","Davido","Tems"],
+      [3,"Who is known as the Godfather of Soul?","James Brown","Ray Charles","Marvin Gaye","Otis Redding"],
+      [3,"In 4/4 time, how many beats does a whole note get?","4","2","1","8"],
+      [3,"Which Italian music term means \"play loudly\"?","Forte","Piano","Allegro","Legato"],
+      [3,"Which singer was born Stefani Germanotta?","Lady Gaga","Gwen Stefani","Katy Perry","Halsey"],
+      [3,"Which Harlem theatre is famous for its Amateur Night?","The Apollo","The Cotton Club","Radio City Music Hall","Carnegie Hall"],
+      [4,"How many symphonies did Beethoven complete?","9","5","7","12"],
+      [4,"Which jazz singer was nicknamed Lady Day?","Billie Holiday","Ella Fitzgerald","Sarah Vaughan","Nina Simone"],
+      [4,"The Wu-Tang Clan came out of which borough?","Staten Island","Brooklyn","Queens","The Bronx"],
+      [4,"Who was the first rapper to win the Pulitzer Prize for Music?","Kendrick Lamar","Jay-Z","Kanye West","J. Cole"],
+      [4,"Which music term means \"gradually get louder\"?","Crescendo","Diminuendo","Staccato","Fermata"],
+      [4,"What was Bob Marley's band called?","The Wailers","The Skatalites","Toots and the Maytals","Steel Pulse"],
+      [5,"Which Burna Boy album won the Grammy for Best Global Music Album in 2021?","Twice as Tall","African Giant","Love, Damini","I Told Them..."],
+      [5,"In what year did MTV launch?","1981","1975","1985","1990"],
+      [5,"What is the Yoruba talking drum called?","Dùndún","Djembe","Kora","Balafon"],
+      [5,"Which Ghanaian bandleader is called the King of Highlife?","E. T. Mensah","Fela Kuti","Kojo Antwi","Sarkodie"]
+    ],
+    food:[
+      [1,"Which country does sushi come from?","Japan","China","Korea","Thailand"],
+      [1,"What is the main ingredient in guacamole?","Avocado","Lime","Tomato","Green pepper"],
+      [1,"Jollof rice is a famous dish across which region?","West Africa","East Africa","North Africa","Southern Africa"],
+      [1,"Paella comes from which country?","Spain","Italy","Mexico","Portugal"],
+      [1,"Kimchi is a staple of which cuisine?","Korean","Japanese","Chinese","Vietnamese"],
+      [2,"What is the main ingredient in hummus?","Chickpeas","Lentils","Fava beans","White beans"],
+      [2,"Which spice is the most expensive by weight?","Saffron","Vanilla","Cardamom","Cinnamon"],
+      [2,"Marzipan is made mainly from which nut?","Almonds","Cashews","Walnuts","Peanuts"],
+      [2,"What is tofu made from?","Soybeans","Rice","Wheat","Chickpeas"],
+      [2,"Prunes are dried what?","Plums","Grapes","Figs","Apricots"],
+      [2,"Tequila is made from which plant?","Blue agave","Cactus","Corn","Sugarcane"],
+      [2,"What does the Scoville scale measure?","How spicy a pepper is","How sweet a fruit is","How acidic a food is","How salty a food is"],
+      [2,"Which country gave the world pho?","Vietnam","Thailand","Cambodia","Laos"],
+      [3,"In Ghana, fufu is most often pounded from cassava and what?","Plantain","Rice","Wheat","Potato"],
+      [3,"Kenkey is a fermented dumpling made from what?","Corn","Cassava","Rice","Millet"],
+      [3,"Waakye is rice cooked together with what?","Beans","Peanuts","Coconut","Plantain"],
+      [3,"What makes traditional sourdough bread rise?","A wild yeast starter","Baking soda","Baking powder","Beaten eggs"],
+      [3,"Which Italian cheese goes into tiramisu?","Mascarpone","Ricotta","Mozzarella","Parmesan"],
+      [3,"Gazpacho is a cold soup made mainly from what?","Tomatoes","Potatoes","Lentils","Pumpkin"],
+      [3,"Which country grows the most coffee?","Brazil","Colombia","Ethiopia","Vietnam"],
+      [3,"The coffee plant first came from which country?","Ethiopia","Yemen","Brazil","Colombia"],
+      [3,"Classic pesto is made with which nut?","Pine nuts","Walnuts","Almonds","Cashews"],
+      [3,"What is the Japanese name for the savoury fifth taste?","Umami","Wasabi","Mirin","Dashi"],
+      [3,"Baba ghanoush is made mainly from which vegetable?","Eggplant","Chickpeas","Zucchini","Cauliflower"],
+      [4,"Which pasta's name means \"little ears\"?","Orecchiette","Farfalle","Fusilli","Penne"],
+      [4,"Which country produces the most cocoa beans?","Côte d'Ivoire","Ghana","Nigeria","Brazil"],
+      [4,"Ethiopian injera is made from which grain?","Teff","Millet","Sorghum","Barley"],
+      [4,"On a restaurant menu, what does \"prix fixe\" mean?","A set menu at one price","Order dishes one by one","A small free starter","Dessert of the day"],
+      [4,"What does the kitchen term \"mise en place\" mean?","Prepping everything before you cook","Folding dough","Making a sauce base","Plating the food"],
+      [4,"What is the main spirit in a mojito?","White rum","Vodka","Gin","Tequila"],
+      [5,"The croissant grew from a pastry first made in which country?","Austria","France","Belgium","Switzerland"],
+      [5,"By US law, bourbon must be made mostly from which grain?","Corn","Rye","Wheat","Barley"],
+      [5,"Bobotie, a spiced minced-meat bake, is a national dish of which country?","South Africa","Ghana","Kenya","Morocco"],
+      [5,"Which French mother sauce is milk thickened with a roux?","Béchamel","Velouté","Espagnole","Hollandaise"]
+    ],
+    animals:[
+      [1,"What is the fastest land animal?","Cheetah","Lion","Pronghorn","Greyhound"],
+      [1,"What is the largest animal that has ever lived?","The blue whale","The African elephant","Argentinosaurus","The whale shark"],
+      [1,"What is a baby kangaroo called?","A joey","A kit","A cub","A pup"],
+      [1,"What is a group of lions called?","A pride","A pack","A herd","A troop"],
+      [1,"Which animal is called the ship of the desert?","The camel","The horse","The ostrich","The donkey"],
+      [2,"What is the largest bird in the world?","The ostrich","The emu","The albatross","The condor"],
+      [2,"What is the only mammal that can truly fly?","The bat","The flying squirrel","The sugar glider","The colugo"],
+      [2,"What is a female deer called?","A doe","A mare","A sow","A ewe"],
+      [2,"Which bird can fly backwards?","The hummingbird","The swallow","The kingfisher","The swift"],
+      [2,"What is the largest species of shark?","The whale shark","The great white","The basking shark","The tiger shark"],
+      [2,"Which mammal lays eggs?","The platypus","The kangaroo","The koala","The armadillo"],
+      [2,"What is the largest primate?","The gorilla","The orangutan","The chimpanzee","The baboon"],
+      [3,"How many hearts does an octopus have?","3","1","2","8"],
+      [3,"What is a group of crows called?","A murder","A parliament","A gaggle","A pride"],
+      [3,"Which land mammal has the longest pregnancy?","The elephant","The giraffe","The rhino","The hippo"],
+      [3,"What is a male duck called?","A drake","A gander","A cob","A cock"],
+      [3,"What colour is a polar bear's skin?","Black","White","Pink","Grey"],
+      [3,"What kind of animal is an axolotl?","A salamander","A fish","A lizard","A frog"],
+      [3,"How many compartments does a cow's stomach have?","4","2","3","6"],
+      [3,"What is the largest living lizard?","The Komodo dragon","The green iguana","The marine iguana","The Gila monster"],
+      [4,"Which animal has fingerprints almost identical to a human's?","The koala","The chimpanzee","The gorilla","The raccoon"],
+      [4,"Which big cat can't fully pull in its claws?","The cheetah","The leopard","The jaguar","The lion"],
+      [4,"Which is the only continent with no native ants?","Antarctica","Australia","Europe","South America"],
+      [4,"The okapi's closest living relative is which animal?","The giraffe","The zebra","The horse","The antelope"],
+      [4,"What is a group of owls called?","A parliament","A murder","A pod","A colony"],
+      [5,"What is Scotland's national animal?","The unicorn","The red deer","The Highland cow","The lion"],
+      [5,"What is a group of flamingos called?","A flamboyance","A parade","A pride","A gaggle"],
+      [5,"Which animal has the largest eyes in the animal kingdom?","The colossal squid","The blue whale","The ostrich","The giant octopus"],
+      [5,"What word describes animals most active at dawn and dusk?","Crepuscular","Nocturnal","Diurnal","Matutinal"]
+    ],
+    words:[
+      [1,"What is a word that means the opposite of another word?","An antonym","A synonym","A homonym","An acronym"],
+      [1,"What is a word that reads the same backwards, like \"level\"?","A palindrome","An anagram","An acronym","An oxymoron"],
+      [1,"\"As brave as a lion\" is an example of what?","A simile","A metaphor","Personification","Hyperbole"],
+      [1,"\"Listen\" and \"silent\" are examples of what?","Anagrams","Homophones","Palindromes","Synonyms"],
+      [1,"What is arachnophobia a fear of?","Spiders","Heights","Snakes","Crowds"],
+      [2,"Which spelling is correct?","Necessary","Neccessary","Necesary","Neccesary"],
+      [2,"\"Jumbo shrimp\" is an example of what?","An oxymoron","A pun","A simile","An idiom"],
+      [2,"Which language has the most native speakers?","Mandarin Chinese","Spanish","English","Hindi"],
+      [2,"Twi is spoken mainly in which country?","Ghana","Kenya","Senegal","Ethiopia"],
+      [2,"Swahili is an official language of which country?","Kenya","Ghana","Nigeria","Senegal"],
+      [2,"Which letter is used most in English?","E","A","T","S"],
+      [2,"Words like \"pair\" and \"pear\" that sound alike are called what?","Homophones","Antonyms","Anagrams","Synonyms"],
+      [2,"What does the Latin phrase \"carpe diem\" mean?","Seize the day","Day of rest","Peace be with you","Count the days"],
+      [2,"What does \"et cetera\" mean?","And the rest","In fact","That is","For example"],
+      [3,"What does \"ubiquitous\" mean?","Found everywhere","Very rare","Extremely loud","Hard to understand"],
+      [3,"What does \"ephemeral\" mean?","Lasting a very short time","Very old","Heavenly","Extremely detailed"],
+      [3,"What does \"gregarious\" mean?","Sociable","Greedy","Serious","Clumsy"],
+      [3,"What does \"Akwaaba\" mean in Twi?","Welcome","Thank you","Goodbye","Friend"],
+      [3,"A word like NASA, made from first letters and said as a word, is called what?","An acronym","An initialism","An abbreviation","An anagram"],
+      [3,"Which punctuation mark joins two closely related full sentences?","A semicolon","A colon","A comma","A hyphen"],
+      [3,"What does \"i.e.\" mean?","That is","For example","And so on","In addition"],
+      [3,"What is the symbol \"&\" called?","An ampersand","An asterisk","An octothorpe","A tilde"],
+      [3,"\"Schadenfreude\" comes from which language?","German","Dutch","Swedish","Danish"],
+      [3,"What is the study of where words come from?","Etymology","Entomology","Phonetics","Semantics"],
+      [4,"What does \"laconic\" mean?","Using very few words","Lazy","Talkative","Gloomy"],
+      [4,"What does the word \"petrichor\" describe?","The smell of rain on dry ground","A fear of rocks","A type of stone","The sound of thunder"],
+      [4,"What does \"Medaase\" mean in Twi?","Thank you","Welcome","Good morning","Sorry"],
+      [4,"The Nguni word \"ubuntu\" is about what idea?","Shared humanity","Freedom","Strength","Silence"],
+      [4,"What does \"obsequious\" mean?","Too eager to please","Hard to see","Very stubborn","Out of date"],
+      [5,"What does \"sesquipedalian\" describe?","Using long words","Walking on stilts","Having six sides","Being very old"],
+      [5,"What is the dot over a lowercase \"i\" called?","A tittle","A jot","A pip","A tick"],
+      [5,"What is another name for the \"#\" symbol?","Octothorpe","Pilcrow","Ampersand","Interrobang"],
+      [5,"What does \"defenestration\" mean?","Throwing someone out of a window","Removing a fence","Taking down defences","Leaving a country"]
+    ],
+    myth:[
+      [1,"Who is king of the Greek gods?","Zeus","Poseidon","Hades","Apollo"],
+      [1,"Which Norse god carries the hammer Mjölnir?","Thor","Odin","Loki","Freyr"],
+      [1,"In Greek myth, who could turn people to stone with a look?","Medusa","Athena","Circe","Hera"],
+      [1,"Which Greek hero had a weak heel?","Achilles","Heracles","Perseus","Odysseus"],
+      [1,"Who is the Greek god of the sea?","Poseidon","Zeus","Hermes","Ares"],
+      [2,"Anansi the spider comes from the stories of which people?","The Akan of Ghana","The Zulu of South Africa","The Maasai of Kenya","The Yoruba of Nigeria"],
+      [2,"What is Zeus called in Roman myth?","Jupiter","Mars","Neptune","Saturn"],
+      [2,"Who is the Roman god of war?","Mars","Jupiter","Mercury","Vulcan"],
+      [2,"Who is the trickster god of Norse myth?","Loki","Odin","Baldur","Heimdall"],
+      [2,"Which Egyptian god has the head of a jackal?","Anubis","Horus","Ra","Thoth"],
+      [2,"Who opened a jar that let evil loose on the world?","Pandora","Persephone","Psyche","Penelope"],
+      [2,"Which creature is half man, half bull?","The Minotaur","A centaur","A satyr","A cyclops"],
+      [2,"Who is the Greek goddess of wisdom?","Athena","Aphrodite","Artemis","Hera"],
+      [2,"Who flew too close to the sun on wax wings?","Icarus","Daedalus","Phaethon","Perseus"],
+      [2,"Who stole fire from the gods and gave it to humans?","Prometheus","Epimetheus","Hermes","Atlas"],
+      [2,"Which Hindu god has the head of an elephant?","Ganesha","Vishnu","Shiva","Hanuman"],
+      [3,"Who is the Yoruba orisha of thunder and lightning?","Shango","Ogun","Oshun","Eshu"],
+      [3,"In Norse myth, what is Valhalla?","A hall for warriors who died in battle","The world tree","A giant wolf","Thor's ship"],
+      [3,"Which river do the dead cross to reach the Greek underworld?","The Styx","The Lethe","The Tiber","The Jordan"],
+      [3,"Who ferries the dead across into the Greek underworld?","Charon","Cerberus","Hermes","Thanatos"],
+      [3,"Which monkey god is a hero of the Ramayana?","Hanuman","Ganesha","Rama","Krishna"],
+      [3,"Who answered the riddle of the Sphinx?","Oedipus","Theseus","Jason","Perseus"],
+      [3,"Who killed the Minotaur?","Theseus","Perseus","Heracles","Jason"],
+      [3,"Who is the Greek goddess of the hunt?","Artemis","Athena","Demeter","Hestia"],
+      [3,"Who was doomed to roll a boulder uphill forever?","Sisyphus","Tantalus","Prometheus","Atlas"],
+      [3,"What is the end of the world called in Norse myth?","Ragnarök","Valhalla","Yggdrasil","Niflheim"],
+      [4,"Which Yoruba orisha is linked to rivers, love and beauty?","Oshun","Ogun","Shango","Eshu"],
+      [4,"What is the name of Odin's eight-legged horse?","Sleipnir","Bifröst","Fenrir","Huginn"],
+      [4,"What is the giant world tree in Norse myth called?","Yggdrasil","Asgard","Midgard","Ragnarök"],
+      [4,"Mami Wata is a water spirit honoured mainly in which region?","West and Central Africa","Scandinavia","South America","East Asia"],
+      [4,"Which Aztec god is the feathered serpent?","Quetzalcoatl","Huitzilopochtli","Tlaloc","Tezcatlipoca"],
+      [4,"In Greek myth, who is Persephone's mother?","Demeter","Hera","Hestia","Rhea"],
+      [5,"In the Anansi stories, which sky god does Anansi buy all stories from?","Nyame","Mawu","Olorun","Ogun"],
+      [5,"In Egyptian myth, the heart of the dead is weighed against whose feather?","Ma'at","Isis","Hathor","Bastet"],
+      [5,"Which ibis-headed Egyptian god is the god of writing?","Thoth","Horus","Ptah","Khnum"]
+    ],
+    art:[
+      [1,"Who painted The Starry Night?","Vincent van Gogh","Claude Monet","Pablo Picasso","Salvador Dalí"],
+      [1,"Who painted the ceiling of the Sistine Chapel?","Michelangelo","Leonardo da Vinci","Raphael","Donatello"],
+      [1,"Which Mexican artist is famous for her self-portraits?","Frida Kahlo","Diego Rivera","Georgia O'Keeffe","Tamara de Lempicka"],
+      [1,"Who wrote Pride and Prejudice?","Jane Austen","Charlotte Brontë","Emily Brontë","Mary Shelley"],
+      [1,"Who wrote the novel 1984?","George Orwell","Aldous Huxley","Ray Bradbury","H. G. Wells"],
+      [2,"Which artist helped start Cubism?","Pablo Picasso","Rembrandt","Andy Warhol","Henri Matisse"],
+      [2,"Which artist is famous for paintings of soup cans?","Andy Warhol","Roy Lichtenstein","Keith Haring","Jackson Pollock"],
+      [2,"Who wrote Things Fall Apart?","Chinua Achebe","Wole Soyinka","Ngũgĩ wa Thiong'o","Ama Ata Aidoo"],
+      [2,"Who wrote I Know Why the Caged Bird Sings?","Maya Angelou","Toni Morrison","Alice Walker","Zora Neale Hurston"],
+      [2,"Kente cloth comes from which country?","Ghana","Kenya","Morocco","Peru"],
+      [2,"Who painted The Scream?","Edvard Munch","Gustav Klimt","Egon Schiele","Wassily Kandinsky"],
+      [2,"Who wrote The Great Gatsby?","F. Scott Fitzgerald","Ernest Hemingway","John Steinbeck","William Faulkner"],
+      [2,"Who wrote the poem \"The Raven\"?","Edgar Allan Poe","Walt Whitman","Emily Dickinson","Robert Frost"],
+      [2,"Which painter is famous for his water lilies?","Claude Monet","Edgar Degas","Paul Cézanne","Pierre-Auguste Renoir"],
+      [3,"Who made the sculpture The Thinker?","Auguste Rodin","Michelangelo","Donatello","Bernini"],
+      [3,"Who wrote Their Eyes Were Watching God?","Zora Neale Hurston","Langston Hughes","Toni Morrison","Nella Larsen"],
+      [3,"Which Dutch painter made Girl with a Pearl Earring?","Johannes Vermeer","Rembrandt","Frans Hals","Jan van Eyck"],
+      [3,"Who wrote One Hundred Years of Solitude?","Gabriel García Márquez","Isabel Allende","Pablo Neruda","Jorge Luis Borges"],
+      [3,"Who wrote the novel Beloved (1987)?","Toni Morrison","Alice Walker","Maya Angelou","Gloria Naylor"],
+      [3,"Who wrote Americanah?","Chimamanda Ngozi Adichie","Chinua Achebe","Yaa Gyasi","Ben Okri"],
+      [3,"Who wrote Don Quixote?","Miguel de Cervantes","Lope de Vega","Federico García Lorca","Gabriel García Márquez"],
+      [3,"Who painted the melting clocks in The Persistence of Memory?","Salvador Dalí","René Magritte","Joan Miró","Max Ernst"],
+      [4,"Who wrote Homegoing, a novel that moves between Ghana and the US?","Yaa Gyasi","Chimamanda Ngozi Adichie","Taiye Selasi","Ama Ata Aidoo"],
+      [4,"Who wrote the 1952 novel Invisible Man?","Ralph Ellison","James Baldwin","Richard Wright","H. G. Wells"],
+      [4,"Who painted The Birth of Venus?","Sandro Botticelli","Titian","Raphael","Caravaggio"],
+      [4,"Jean-Michel Basquiat was born in which New York borough?","Brooklyn","Manhattan","Queens","The Bronx"],
+      [4,"Who painted American Gothic?","Grant Wood","Edward Hopper","Norman Rockwell","Andrew Wyeth"],
+      [4,"Who painted Nighthawks?","Edward Hopper","Grant Wood","Norman Rockwell","Georgia O'Keeffe"],
+      [4,"Who wrote the poem \"The Negro Speaks of Rivers\"?","Langston Hughes","Countee Cullen","Claude McKay","Paul Laurence Dunbar"],
+      [4,"Who painted Barack Obama's official presidential portrait?","Kehinde Wiley","Amy Sherald","Kerry James Marshall","Mickalene Thomas"],
+      [4,"Who was the first Black African writer to win the Nobel Prize in Literature?","Wole Soyinka","Chinua Achebe","Ngũgĩ wa Thiong'o","Ben Okri"],
+      [4,"Jackson Pollock belongs to which art movement?","Abstract Expressionism","Pop Art","Cubism","Surrealism"],
+      [4,"Who painted The Night Watch?","Rembrandt","Johannes Vermeer","Vincent van Gogh","Frans Hals"],
+      [5,"Which Harlem Renaissance painter made the Migration Series?","Jacob Lawrence","Romare Bearden","Aaron Douglas","Augusta Savage"],
+      [5,"Which Ghanaian artist makes huge hangings from bottle caps?","El Anatsui","Ibrahim Mahama","Amoako Boafo","Yinka Shonibare"],
+      [5,"Which Japanese artist made The Great Wave off Kanagawa?","Hokusai","Hiroshige","Utamaro","Yayoi Kusama"],
+      [5,"Who wrote The Beautyful Ones Are Not Yet Born (1968)?","Ayi Kwei Armah","Ama Ata Aidoo","Kofi Awoonor","Chinua Achebe"],
+      [5,"What is painting onto wet plaster called?","Fresco","Tempera","Gouache","Encaustic"]
+    ]
+  };
+
+  const shuffle = a => { const b = a.slice(); for(let i = b.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const mod = (n, m) => ((n % m) + m) % m;
+  const money = n => (n < 0 ? '−$' : '$') + Math.abs(n).toLocaleString();
+
+  // Questions you've already seen are remembered on this device (across games)
+  // and skipped until every question that fits has been used.
+  const ALL_CATS = Object.keys(Q);
+  const hash = s => { let h = 5381; for(let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
+  let seen = store.get('kosmic.seen', {});
+  if(!seen || typeof seen !== 'object') seen = {};
+  const isSeen = (cat, qi) => (seen[cat] || []).includes(hash(Q[cat][qi][1]));
+  function markSeen(cat, qi){
+    const list = seen[cat] || (seen[cat] = []), h = hash(Q[cat][qi][1]);
+    if(!list.includes(h)){ list.push(h); store.set('kosmic.seen', seen); }
+  }
+  function freshPick(cat, filter){
+    const pool = Q[cat].map((q, i) => i).filter(filter);
+    let fresh = pool.filter(i => !isSeen(cat, i));
+    if(!fresh.length){
+      const hs = new Set(pool.map(i => hash(Q[cat][i][1])));
+      seen[cat] = (seen[cat] || []).filter(h => !hs.has(h));
+      store.set('kosmic.seen', seen);
+      fresh = pool;
+    }
+    return pick(fresh);
+  }
+  const drawQuestion = (cat, lo, hi) => freshPick(cat, i => Q[cat][i][0] >= lo && Q[cat][i][0] <= hi);
+  // Spin mode difficulty by level: L1 tiers 1-3, L2 2-4, L3 3-5, L4+ 4-5
+  const tierRange = lvl => [Math.min(4, lvl), Math.min(5, lvl + 2)];
+
+  // ---------- State ----------
+  const MAX_LIVES = 3, PER_LEVEL = 5;
+  const S = { mode:'spin', started:false, phase:'start', lives:MAX_LIVES, level:1, score:0, correct:0, wrong:0, levelCorrect:0,
+              rot:0, leveled:false, heartBack:false, current:null, board:null, pendingWager:null,
+              cats: shuffle(ALL_CATS).slice(0, 6) };
+  const colorOf = id => id === 'crown' ? CROWN_COLOR : SEAT_COLORS[Math.max(0, S.cats.indexOf(id))];
+  const slices = () => { const c = S.cats; return [c[0], c[1], c[2], c[3], c[4], 'crown', c[5]]; };
+  const dealCats = () => { S.cats = shuffle(ALL_CATS).slice(0, 6); };
+  const best = { spin: store.get('triviaSpin.best', 0), board: store.get('triviaSpin.bestBoard', 0) };
+  let muted = store.get('triviaSpin.muted', false);
+  const timeFor = lvl => Math.max(8, 22 - lvl * 2);
+  const BOARD_TIME = 20, FINAL_TIME = 30;
+
+  // ---------- Sound ----------
+  let actx = null;
+  function audio(){
+    if(muted) return null;
+    try{
+      if(!actx){ const AC = window.AudioContext || window.webkitAudioContext; if(!AC) return null; actx = new AC(); }
+      if(actx.state === 'suspended') actx.resume().catch(() => {});
+      return actx;
+    }catch(e){ return null; }
+  }
+  function tone(freq, dur, type = 'sine', vol = .14, when = 0){
+    const a = audio(); if(!a) return;
+    try{
+      const t = a.currentTime + when, o = a.createOscillator(), g = a.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + .03);
+    }catch(e){}
+  }
+  const sfx = {
+    tick(){ tone(1500 + Math.random() * 200, .03, 'square', .04); },
+    land(){ tone(660, .12, 'triangle', .16); tone(990, .2, 'triangle', .14, .1); },
+    right(){ tone(784, .12, 'triangle', .18); tone(1175, .25, 'triangle', .16, .1); },
+    wrong(){ tone(180, .32, 'sawtooth', .09); tone(130, .4, 'sawtooth', .08, .12); },
+    hurry(){ tone(900, .05, 'square', .05); },
+    level(){ [523, 659, 784, 1047].forEach((f, i) => tone(f, .18, 'triangle', .15, i * .09)); },
+    dd(){ [392, 523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, .14, 'square', .07, i * .06)); },
+    over(){ [392, 330, 262].forEach((f, i) => tone(f, .3, 'triangle', .14, i * .16)); }
+  };
+
+  // ---------- Elements ----------
+  const el = {};
+  ['hearts','midLbl','midVal','score','muteBtn','pips','wheelView','boardView','questionView','wheelWrap','wheel','bulbs','pointer','hubBtn','spinBtn','hint',
+   'board','boardNote','finishBtn','card','catChip','timerNum','timerFill','qText','answers','feedback','nextBtn',
+   'startOverlay','modeSpin','modeBoard','bestSpinLine','bestBoardLine','pickOverlay','pickGrid',
+   'wagerOverlay','wagerKicker','wagerTitle','wagerText','wagerAmt','wagerRange','wagerMin','wagerMax','wagerBtn',
+   'levelOverlay','levelTitle','levelText','levelBtn',
+   'overOverlay','overTitle','overNote','newBest','stat1Lbl','stat1','stat2Lbl','stat2','stat3Lbl','stat3','overBest','againBtn','switchBtn'
+  ].forEach(id => { el[id] = $(id); });
+
+  // ---------- HUD ----------
+  const HEART = '<svg class="heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.2l-1.4-1.3C5.4 15.2 2 12.1 2 8.4 2 5.4 4.4 3 7.4 3c1.7 0 3.4.8 4.6 2.1C13.2 3.8 14.9 3 16.6 3 19.6 3 22 5.4 22 8.4c0 3.7-3.4 6.8-8.6 11.5L12 21.2z"/></svg>';
+  const cluesLeft = () => S.board ? S.board.cols.reduce((n, c) => n + c.tiles.filter(t => !t.used).length, 0) : 0;
+  function renderHud(hitIndex = -1){
+    const board = S.mode === 'board';
+    el.hearts.hidden = board;
+    if(!board){
+      el.hearts.innerHTML = Array.from({length:MAX_LIVES}, (_, i) => HEART.replace('class="heart"', `class="heart${i >= S.lives ? ' lost' : ''}${i === hitIndex ? ' hit' : ''}"`)).join('');
+      el.hearts.setAttribute('aria-label', `${S.lives} ${S.lives === 1 ? 'life' : 'lives'} left`);
+      el.midLbl.textContent = 'Level'; el.midVal.textContent = S.level;
+      el.score.textContent = S.score.toLocaleString();
+      el.pips.innerHTML = Array.from({length:PER_LEVEL}, (_, i) => `<span class="pip${i < S.levelCorrect ? ' on' : ''}"></span>`).join('');
+      el.pips.setAttribute('aria-label', `${S.levelCorrect} of ${PER_LEVEL} correct this level`);
+    } else {
+      el.midLbl.textContent = 'Clues left'; el.midVal.textContent = cluesLeft();
+      el.score.textContent = money(S.score);
+    }
+    el.score.classList.toggle('neg', S.score < 0);
+  }
+  function popScore(){ el.score.classList.remove('pop'); void el.score.offsetWidth; el.score.classList.add('pop'); }
+  function renderMute(){
+    el.muteBtn.innerHTML = muted
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor"/><path d="m16 9 5 6M21 9l-5 6"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+    el.muteBtn.setAttribute('aria-label', muted ? 'Turn sound on' : 'Turn sound off');
+  }
+  el.muteBtn.addEventListener('click', () => { muted = !muted; store.set('triviaSpin.muted', muted); renderMute(); if(!muted) sfx.tick(); });
+  function renderBest(){
+    el.bestSpinLine.textContent = `Best: ${best.spin.toLocaleString()}`;
+    el.bestBoardLine.textContent = `Best: ${money(best.board)}`;
+  }
+
+  // ---------- Wheel drawing ----------
+  const SEG = 360 / 7;
+  const wctx = el.wheel.getContext('2d'), bctx = el.bulbs.getContext('2d');
+  const DISPLAY_FONT = "Bungee, 'Arial Black', Impact, sans-serif";
+
+  function sizeCanvas(c){
+    const r = c.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const w = Math.max(1, Math.round(r.width * dpr));
+    if(c.width !== w){ c.width = w; c.height = w; return true; }
+    return false;
+  }
+  function crownPath(ctx, s){
+    ctx.beginPath();
+    ctx.moveTo(-s/2, s*.32); ctx.lineTo(-s/2, -s*.28); ctx.lineTo(-s/4, 0); ctx.lineTo(0, -s*.42);
+    ctx.lineTo(s/4, 0); ctx.lineTo(s/2, -s*.28); ctx.lineTo(s/2, s*.32); ctx.closePath();
+  }
+  function drawWheel(){
+    if(el.wheel.getBoundingClientRect().width < 20) return; // hidden
+    sizeCanvas(el.wheel);
+    const W = el.wheel.width, c = W / 2, r = c - W * .006, ctx = wctx;
+    const hubR = W * (0.125 / 0.85);
+    ctx.clearRect(0, 0, W, W);
+    const SLICES = slices();
+    SLICES.forEach((id, i) => {
+      const a0 = (-90 + i * SEG) * Math.PI / 180, a1 = (-90 + (i + 1) * SEG) * Math.PI / 180;
+      ctx.beginPath(); ctx.moveTo(c, c); ctx.arc(c, c, r, a0, a1); ctx.closePath();
+      ctx.fillStyle = colorOf(id); ctx.fill();
+    });
+    const g = ctx.createRadialGradient(c, c, hubR, c, c, r);
+    g.addColorStop(0, 'rgba(255,255,255,.18)'); g.addColorStop(.7, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,0,0,.22)');
+    ctx.beginPath(); ctx.arc(c, c, r, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,246,229,.95)'; ctx.lineWidth = Math.max(2, W * .008);
+    SLICES.forEach((_, i) => {
+      const a = (-90 + i * SEG) * Math.PI / 180;
+      ctx.beginPath(); ctx.moveTo(c, c); ctx.lineTo(c + Math.cos(a) * r, c + Math.sin(a) * r); ctx.stroke();
+    });
+    ctx.beginPath(); ctx.arc(c, c, r - ctx.lineWidth / 2, 0, Math.PI * 2); ctx.stroke();
+    SLICES.forEach((id, i) => {
+      const mid = (-90 + (i + .5) * SEG) * Math.PI / 180;
+      const isCrown = id === 'crown';
+      const label = CATS[id].name.toUpperCase();
+      const outer = isCrown ? r * .70 : r * .9;
+      const maxW = outer - hubR - r * .06;
+      let fs = W * .05;
+      ctx.save(); ctx.translate(c, c); ctx.rotate(mid);
+      ctx.font = `${fs}px ${DISPLAY_FONT}`;
+      while(ctx.measureText(label).width > maxW && fs > 6){ fs -= .5; ctx.font = `${fs}px ${DISPLAY_FONT}`; }
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+      ctx.lineWidth = Math.max(2, fs * .28); ctx.strokeStyle = '#14122b'; ctx.strokeText(label, outer, fs * .04);
+      ctx.fillStyle = isCrown ? '#ffc93c' : '#fffaf0'; ctx.fillText(label, outer, fs * .04);
+      if(isCrown){
+        ctx.translate(r * .84, 0); ctx.rotate(Math.PI / 2);
+        crownPath(ctx, W * .075);
+        ctx.fillStyle = '#ffc93c'; ctx.fill(); ctx.lineWidth = Math.max(2, W * .007); ctx.strokeStyle = '#14122b'; ctx.stroke();
+      }
+      ctx.restore();
+    });
+  }
+
+  let bulbMode = 'idle', lastBulbKey = '';
+  function drawBulbs(now){
+    if(el.wheelView.hidden) return;
+    const resized = sizeCanvas(el.bulbs);
+    const speed = bulbMode === 'fast' ? 70 : bulbMode === 'win' ? 170 : 520;
+    const step = reduced ? 0 : Math.floor(now / speed);
+    const key = `${bulbMode}|${step}|${el.bulbs.width}`;
+    if(key === lastBulbKey && !resized) return;
+    lastBulbKey = key;
+    const W = el.bulbs.width, c = W / 2, ctx = bctx, n = 28;
+    if(W < 20) return;
+    ctx.clearRect(0, 0, W, W);
+    ctx.beginPath(); ctx.arc(c, c, c - W * .006, 0, Math.PI * 2);
+    ctx.fillStyle = '#1c2a58'; ctx.fill();
+    ctx.lineWidth = W * .012; ctx.strokeStyle = '#c9951a'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(c, c, W * .43, 0, Math.PI * 2); ctx.lineWidth = W * .01; ctx.strokeStyle = '#0c1430'; ctx.stroke();
+    const rr = W * .462, br = W * .0145;
+    for(let k = 0; k < n; k++){
+      let on;
+      if(bulbMode === 'win') on = step % 2 === 0 ? k % 2 === 0 : k % 2 === 1;
+      else on = mod(k - step, 3) === 0;
+      if(reduced && bulbMode !== 'win') on = k % 2 === 0;
+      const a = (k / n) * Math.PI * 2 - Math.PI / 2;
+      const x = c + Math.cos(a) * rr, y = c + Math.sin(a) * rr;
+      ctx.beginPath(); ctx.arc(x, y, br, 0, Math.PI * 2);
+      if(on){ ctx.shadowColor = 'rgba(255,214,90,.95)'; ctx.shadowBlur = br * 2.4; ctx.fillStyle = '#ffe28a'; }
+      else { ctx.shadowBlur = 0; ctx.fillStyle = '#5e4b1f'; }
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+  }
+  function loop(now){ drawBulbs(now); requestAnimationFrame(loop); }
+
+  function setRot(deg){ S.rot = deg; el.wheel.style.transform = `rotate(${deg}deg)`; }
+  function nudgePointer(){ el.pointer.classList.remove('tick'); void el.pointer.getBoundingClientRect(); el.pointer.classList.add('tick'); }
+
+  // ---------- Shared flow ----------
+  function showView(name){
+    el.wheelView.hidden = name !== 'wheel';
+    el.boardView.hidden = name !== 'board';
+    el.questionView.hidden = name !== 'question';
+  }
+
+  // Timer
+  let timerRAF = 0, deadline = 0, duration = 0, lastSec = 0;
+  function startTimer(sec){
+    cancelAnimationFrame(timerRAF);
+    duration = sec * 1000; deadline = performance.now() + duration; lastSec = sec;
+    el.timerNum.textContent = sec; el.card.classList.remove('hurry');
+    el.timerFill.style.transform = 'scaleX(1)';
+    timerRAF = requestAnimationFrame(timerFrame);
+  }
+  function timerFrame(now){
+    const left = Math.max(0, deadline - now);
+    el.timerFill.style.transform = `scaleX(${left / duration})`;
+    const s = Math.ceil(left / 1000);
+    if(s !== lastSec){ lastSec = s; el.timerNum.textContent = s; if(s <= 5 && s > 0) sfx.hurry(); }
+    el.card.classList.toggle('hurry', s <= 5);
+    if(left <= 0){ answer(-1); return; }
+    timerRAF = requestAnimationFrame(timerFrame);
+  }
+  const stopTimer = () => cancelAnimationFrame(timerRAF);
+
+  // Show a question card. extra: { value, col, row, isFinal } for board mode
+  function showQuestion(cat, qi, seconds, chipText, extra = {}){
+    const [, q, right, ...wrong] = Q[cat][qi];
+    const opts = shuffle([right, ...wrong]);
+    S.current = Object.assign({ cat, qi, right, correctIndex: opts.indexOf(right) }, extra);
+    markSeen(cat, qi);
+    S.phase = 'question';
+    el.card.style.setProperty('--cat', colorOf(cat));
+    el.catChip.textContent = chipText;
+    el.qText.textContent = q;
+    el.answers.innerHTML = opts.map((o, i) => `<button class="ans" type="button" data-i="${i}"><span class="key">${'ABCD'[i]}</span><span class="txt"></span></button>`).join('');
+    el.answers.querySelectorAll('.txt').forEach((n, i) => { n.textContent = opts[i]; });
+    el.feedback.textContent = ''; el.feedback.className = 'feedback';
+    el.nextBtn.hidden = true;
+    el.card.style.animation = 'none'; void el.card.offsetWidth; el.card.style.animation = '';
+    showView('question');
+    el.questionView.scrollTop = 0;
+    el.qText.focus({preventScroll:true});
+    startTimer(seconds);
+  }
+
+  el.answers.addEventListener('click', e => {
+    const b = e.target.closest('.ans'); if(!b || S.phase !== 'question') return;
+    answer(+b.dataset.i);
+  });
+
+  function answer(i){
+    if(S.phase !== 'question') return;
+    stopTimer();
+    S.phase = 'reveal';
+    const btns = [...el.answers.querySelectorAll('.ans')];
+    const cur = S.current, ci = cur.correctIndex, ok = i === ci;
+    btns.forEach((b, k) => {
+      b.disabled = true;
+      if(k === ci) b.classList.add('right');
+      else if(k === i) b.classList.add('wrong');
+      else b.classList.add('dim');
+    });
+    const missLine = () => {
+      el.feedback.querySelector('small').textContent = `The answer was ${cur.right}.`;
+    };
+
+    if(S.mode === 'spin'){
+      if(ok){
+        const secsLeft = Math.ceil(Math.max(0, deadline - performance.now()) / 1000);
+        const pts = 100 * S.level + 10 * secsLeft;
+        S.score += pts; S.correct++; S.levelCorrect++;
+        sfx.right();
+        el.feedback.className = 'feedback good';
+        el.feedback.textContent = `Correct! +${pts}`;
+        if(S.levelCorrect >= PER_LEVEL){
+          S.level++; S.levelCorrect = 0; S.leveled = true;
+          S.heartBack = S.lives < MAX_LIVES;
+          if(S.heartBack) S.lives++;
+        }
+        renderHud(); popScore();
+      } else {
+        S.lives--; S.wrong++;
+        sfx.wrong();
+        el.feedback.className = 'feedback bad';
+        el.feedback.innerHTML = `${i === -1 ? "Time's up!" : 'Not quite.'}<small></small>`;
+        missLine();
+        renderHud(S.lives);
+      }
+      el.nextBtn.textContent = S.lives <= 0 ? 'See results' : S.leveled ? 'Level up!' : 'Spin again';
+    } else {
+      const v = cur.value;
+      if(!cur.isFinal) S.board.cols[cur.col].tiles[cur.row].used = true;
+      if(ok){
+        S.score += v; S.correct++;
+        sfx.right();
+        el.feedback.className = 'feedback good';
+        el.feedback.textContent = `Correct! +${money(v)}`;
+      } else {
+        S.score -= v; S.wrong++;
+        sfx.wrong();
+        el.feedback.className = 'feedback bad';
+        el.feedback.innerHTML = `${i === -1 ? "Time's up!" : 'Not quite.'} −${money(v)}<small></small>`;
+        missLine();
+      }
+      renderHud(); popScore();
+      el.nextBtn.textContent = cur.isFinal ? 'See results' : cluesLeft() === 0 ? 'Final round' : 'Back to board';
+    }
+    el.nextBtn.hidden = false;
+    el.nextBtn.focus({preventScroll:true});
+    el.nextBtn.scrollIntoView({block:'nearest', behavior: reduced ? 'auto' : 'smooth'});
+  }
+
+  el.nextBtn.addEventListener('click', () => {
+    if(S.phase !== 'reveal') return;
+    if(S.mode === 'spin'){
+      if(S.lives <= 0) return gameOver();
+      if(S.leveled) return showLevelUp();
+      return toWheel();
+    }
+    if(S.current && S.current.isFinal) return gameOver();
+    if(cluesLeft() === 0) return startFinal();
+    toBoard();
+  });
+
+  // ---------- Spin mode ----------
+  function toWheel(){
+    S.phase = 'wheel';
+    el.wheel.setAttribute('aria-label', 'Category wheel: ' + slices().map(id => CATS[id].name).join(', '));
+    showView('wheel');
+    bulbMode = 'idle'; lastBulbKey = '';
+    el.spinBtn.disabled = false; el.hubBtn.disabled = false;
+    el.hint.textContent = 'Tap spin to get a category'; el.hint.style.color = '';
+    renderHud();
+    requestAnimationFrame(drawWheel);
+  }
+
+  function spin(){
+    if(S.phase !== 'wheel') return;
+    audio();
+    S.phase = 'spinning';
+    el.spinBtn.disabled = true; el.hubBtn.disabled = true;
+    el.hint.textContent = 'Spinning…'; el.hint.style.color = '';
+    bulbMode = 'fast';
+    const n = 7;
+    const t = Math.floor(Math.random() * n);
+    const offset = SEG * (.18 + Math.random() * .64);
+    const target = 360 - (t * SEG + offset);
+    const start = S.rot, base = start - mod(start, 360);
+    let end = base + target + 360 * 5;
+    if(end - start < 360 * 4) end += 360;
+    const dur = reduced ? 1200 : 4300, t0 = performance.now();
+    let lastIdx = Math.floor(start / SEG);
+    function frame(now){
+      const p = Math.min(1, (now - t0) / dur);
+      const e = 1 - Math.pow(1 - p, 4);
+      setRot(start + (end - start) * e);
+      const idx = Math.floor(S.rot / SEG);
+      if(idx !== lastIdx){ lastIdx = idx; sfx.tick(); if(!reduced) nudgePointer(); }
+      if(p < 1) requestAnimationFrame(frame); else landed();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function landed(){
+    const i = Math.floor(mod(-S.rot, 360) / SEG) % 7;
+    const id = slices()[i];
+    bulbMode = 'win';
+    sfx.land();
+    el.hint.textContent = id === 'crown' ? 'Crown! You pick' : `${CATS[id].name}!`;
+    el.hint.style.color = id === 'crown' ? '#ffc93c' : colorOf(id);
+    setTimeout(() => {
+      bulbMode = 'idle';
+      if(id === 'crown') openPick(); else askSpin(id);
+    }, 900);
+  }
+
+  function askSpin(cat){
+    const [lo, hi] = tierRange(S.level);
+    showQuestion(cat, drawQuestion(cat, lo, hi), timeFor(S.level), CATS[cat].name);
+  }
+
+  function openPick(){
+    S.phase = 'pick';
+    el.pickGrid.innerHTML = S.cats.map(id => `<button class="pick-btn" type="button" data-cat="${id}" style="--c:${colorOf(id)}">${CATS[id].name}</button>`).join('');
+    el.pickOverlay.hidden = false;
+    el.pickGrid.querySelector('button').focus({preventScroll:true});
+  }
+  el.pickGrid.addEventListener('click', e => {
+    const b = e.target.closest('.pick-btn'); if(!b) return;
+    el.pickOverlay.hidden = true;
+    askSpin(b.dataset.cat);
+  });
+
+  function showLevelUp(){
+    S.leveled = false; S.phase = 'levelup';
+    sfx.level();
+    el.levelTitle.textContent = `Level ${S.level}`;
+    el.levelText.textContent = `Harder questions, ${timeFor(S.level)} seconds each, and more points per right answer.` + (S.heartBack ? ' You also won back a heart.' : '');
+    el.levelOverlay.hidden = false;
+    el.levelBtn.focus({preventScroll:true});
+  }
+  el.levelBtn.addEventListener('click', () => { el.levelOverlay.hidden = true; toWheel(); });
+
+  // ---------- Board mode ----------
+  function buildBoard(){
+    const cols = S.cats.map(cat => ({
+      cat,
+      tiles: [1, 2, 3, 4, 5].map(tier => ({
+        qi: freshPick(cat, i => Q[cat][i][0] === tier),
+        value: tier * 200, used: false, dd: false
+      }))
+    }));
+    pick(cols).tiles[2 + Math.floor(Math.random() * 3)].dd = true;
+    const fcat = pick(S.cats);
+    const onBoard = new Set(cols.find(c => c.cat === fcat).tiles.map(t => t.qi));
+    const fqi = freshPick(fcat, i => Q[fcat][i][0] >= 4 && !onBoard.has(i));
+    S.board = { cols, final: { cat: fcat, qi: fqi } };
+  }
+
+  function renderBoard(){
+    const cols = S.board.cols;
+    let html = cols.map(c => `<div class="bhead" style="--c:${colorOf(c.cat)}">${CATS[c.cat].name}</div>`).join('');
+    for(let row = 0; row < 5; row++){
+      cols.forEach((c, col) => {
+        const t = c.tiles[row];
+        html += t.used
+          ? `<button class="tile" type="button" disabled aria-label="${CATS[c.cat].name} ${money(t.value)}, done"></button>`
+          : `<button class="tile" type="button" data-col="${col}" data-row="${row}" aria-label="${CATS[c.cat].name} for ${money(t.value)}">${money(t.value)}</button>`;
+      });
+    }
+    el.board.innerHTML = html;
+    const left = cluesLeft();
+    el.boardNote.textContent = left === 30 ? 'Pick a category and an amount' : `${left} clue${left === 1 ? '' : 's'} left`;
+    el.finishBtn.textContent = left === 0 ? 'Play the final round' : 'Skip to final';
+    el.finishBtn.className = left === 0 ? 'big-btn' : 'ghost-btn';
+  }
+
+  function toBoard(){
+    S.phase = 'board';
+    showView('board');
+    renderBoard(); renderHud();
+  }
+
+  el.board.addEventListener('click', e => {
+    const b = e.target.closest('.tile'); if(!b || b.disabled || S.phase !== 'board') return;
+    audio();
+    const col = +b.dataset.col, row = +b.dataset.row;
+    const c = S.board.cols[col], t = c.tiles[row];
+    if(t.dd) return openWager('dd', col, row);
+    showQuestion(c.cat, t.qi, BOARD_TIME, `${CATS[c.cat].name} · ${money(t.value)}`, { value: t.value, col, row });
+  });
+
+  el.finishBtn.addEventListener('click', () => { if(S.phase === 'board') startFinal(); });
+
+  function startFinal(){
+    if(S.score <= 0) return gameOver({ noFinal: true });
+    openWager('final');
+  }
+
+  const roundDown = n => Math.floor(n / 100) * 100;
+  function setWager(v){
+    const r = el.wagerRange;
+    v = Math.min(+r.max, Math.max(+r.min, roundDown(v)));
+    r.value = v; el.wagerAmt.textContent = money(v);
+  }
+  function openWager(kind, col, row){
+    S.phase = 'wager';
+    S.pendingWager = { kind, col, row };
+    const isFinal = kind === 'final';
+    const min = isFinal ? 0 : 100;
+    let max = isFinal ? roundDown(S.score) : roundDown(Math.max(S.score, 1000));
+    if(max < min) max = min;
+    el.wagerRange.min = min; el.wagerRange.max = max; el.wagerRange.step = 100;
+    el.wagerMin.textContent = money(min); el.wagerMax.textContent = money(max);
+    if(isFinal){
+      const cat = CATS[S.board.final.cat].name;
+      el.wagerKicker.textContent = 'Final round';
+      el.wagerTitle.textContent = cat;
+      el.wagerText.textContent = `One last question about ${cat}. Bet up to everything you have. You get ${FINAL_TIME} seconds.`;
+      sfx.level();
+    } else {
+      const cat = CATS[S.board.cols[col].cat].name;
+      el.wagerKicker.textContent = cat;
+      el.wagerTitle.textContent = 'Daily Double!';
+      el.wagerText.textContent = S.score > 1000
+        ? `Bet anything up to your full ${money(S.score)}.`
+        : 'Bet anything up to $1,000.';
+      sfx.dd();
+    }
+    setWager(max / 2);
+    el.wagerOverlay.hidden = false;
+    el.wagerBtn.focus({preventScroll:true});
+  }
+  el.wagerRange.addEventListener('input', () => setWager(+el.wagerRange.value));
+  el.wagerOverlay.querySelectorAll('[data-w]').forEach(b => b.addEventListener('click', () => {
+    const r = el.wagerRange, w = b.dataset.w;
+    setWager(w === 'min' ? +r.min : w === 'max' ? +r.max : +r.max / 2);
+  }));
+  el.wagerBtn.addEventListener('click', () => {
+    if(S.phase !== 'wager') return;
+    const w = +el.wagerRange.value, p = S.pendingWager;
+    el.wagerOverlay.hidden = true;
+    if(p.kind === 'final'){
+      const f = S.board.final;
+      showQuestion(f.cat, f.qi, FINAL_TIME, `Final · ${money(w)}`, { value: w, isFinal: true });
+    } else {
+      const c = S.board.cols[p.col], t = c.tiles[p.row];
+      showQuestion(c.cat, t.qi, BOARD_TIME, `Daily Double · ${money(w)}`, { value: w, col: p.col, row: p.row });
+    }
+  });
+
+  // ---------- Game over & modes ----------
+  function gameOver(opts = {}){
+    S.phase = 'over';
+    sfx.over();
+    const key = S.mode;
+    const isBest = S.score > best[key];
+    if(isBest){ best[key] = S.score; store.set(key === 'spin' ? 'triviaSpin.best' : 'triviaSpin.bestBoard', S.score); }
+    el.newBest.hidden = !(isBest && S.score > 0);
+    if(key === 'spin'){
+      el.overTitle.textContent = 'Game over';
+      el.overNote.hidden = true;
+      el.stat1Lbl.textContent = 'Score'; el.stat1.textContent = S.score.toLocaleString();
+      el.stat2Lbl.textContent = 'Level'; el.stat2.textContent = S.level;
+      el.stat3Lbl.textContent = 'Correct'; el.stat3.textContent = S.correct;
+      el.overBest.innerHTML = `Best score: <b>${best.spin.toLocaleString()}</b>`;
+    } else {
+      el.overTitle.textContent = opts.noFinal ? 'Game over' : 'Final score';
+      el.overNote.hidden = !opts.noFinal;
+      el.overNote.textContent = 'You need more than $0 to play the final round.';
+      el.stat1Lbl.textContent = 'Winnings'; el.stat1.textContent = money(S.score);
+      el.stat2Lbl.textContent = 'Right'; el.stat2.textContent = S.correct;
+      el.stat3Lbl.textContent = 'Wrong'; el.stat3.textContent = S.wrong;
+      el.overBest.innerHTML = `Best winnings: <b>${money(best.board)}</b>`;
+    }
+    renderBest();
+    el.overOverlay.hidden = false;
+    el.againBtn.focus({preventScroll:true});
+  }
+
+  function startMode(mode){
+    Object.assign(S, { mode, started:true, lives:MAX_LIVES, level:1, score:0, correct:0, wrong:0, levelCorrect:0,
+                       leveled:false, heartBack:false, current:null, board:null, pendingWager:null });
+    dealCats();
+    el.startOverlay.hidden = true; el.overOverlay.hidden = true;
+    audio();
+    if(mode === 'spin'){ toWheel(); el.spinBtn.focus({preventScroll:true}); }
+    else { buildBoard(); toBoard(); }
+  }
+  el.modeSpin.addEventListener('click', () => startMode('spin'));
+  el.modeBoard.addEventListener('click', () => startMode('board'));
+  el.againBtn.addEventListener('click', () => startMode(S.mode));
+  el.switchBtn.addEventListener('click', () => {
+    el.overOverlay.hidden = true;
+    S.phase = 'start'; S.started = false;
+    renderBest();
+    el.startOverlay.hidden = false;
+  });
+  el.spinBtn.addEventListener('click', spin);
+  el.hubBtn.addEventListener('click', spin);
+
+  document.addEventListener('keydown', e => {
+    if(S.phase === 'question'){
+      const k = e.key.toLowerCase();
+      if(k.length !== 1) return;
+      const idx = '1234'.indexOf(k) >= 0 ? '1234'.indexOf(k) : 'abcd'.indexOf(k);
+      if(idx >= 0){ e.preventDefault(); answer(idx); }
+    } else if(S.phase === 'wheel' && (e.key === ' ' || e.key === 'Enter') && !(e.target instanceof HTMLButtonElement)){
+      e.preventDefault(); spin();
+    }
+  });
+
+  // ---------- Boot ----------
+  if(window.ResizeObserver) new ResizeObserver(() => { drawWheel(); lastBulbKey = ''; }).observe(el.wheelWrap);
+  else window.addEventListener('resize', () => { drawWheel(); lastBulbKey = ''; });
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(drawWheel).catch(() => {});
+
+  const hot = window.claude && window.claude.hot;
+  try{
+    if(hot && hot.snapshot) hot.snapshot(() => ({ mode:S.mode, started:S.started, lives:S.lives, level:S.level, score:S.score, correct:S.correct, wrong:S.wrong,
+      levelCorrect:S.levelCorrect, rot:mod(S.rot, 360), board:S.board, cats:S.cats, over:S.phase === 'over' }));
+  }catch(e){}
+
+  function start(data){
+    data = data || {};
+    renderMute(); renderBest();
+    if(Array.isArray(data.cats) && data.cats.length === 6 && data.cats.every(c => Q[c])) S.cats = data.cats;
+    setRot(typeof data.rot === 'number' ? data.rot : 0);
+    const resumeSpin = data.started && !data.over && data.mode !== 'board' && data.lives > 0;
+    const resumeBoard = data.started && !data.over && data.mode === 'board' && data.board && data.board.cols && data.board.cols.every(c => Q[c.cat] && c.tiles.every(t => Q[c.cat][t.qi]));
+    if(resumeSpin || resumeBoard){
+      Object.assign(S, { mode:data.mode || 'spin', started:true, lives:data.lives || MAX_LIVES, level:data.level || 1, score:data.score || 0,
+        correct:data.correct || 0, wrong:data.wrong || 0, levelCorrect:data.levelCorrect || 0, board:data.board || null });
+      el.startOverlay.hidden = true;
+      if(resumeBoard) toBoard(); else toWheel();
+    } else {
+      S.phase = 'start';
+      showView('wheel');
+      renderHud();
+      requestAnimationFrame(drawWheel);
+    }
+    requestAnimationFrame(loop);
+  }
+  if(hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
+})();
+</script>
+</body>
+</html>
