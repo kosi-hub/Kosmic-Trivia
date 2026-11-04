@@ -146,6 +146,20 @@ button{font:inherit;color:inherit}
 .panel .sub{color:var(--muted)}
 .pick-label{font-family:var(--display);font-size:.95rem;color:var(--muted)}
 .panel .deal-note{margin-top:-10px;font-size:.95rem}
+.who{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;width:100%}
+.name-input{min-width:0;width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#101a38;color:var(--ink);font:700 1rem var(--body)}
+.name-input::placeholder{color:#7d89ad}
+.name-input:focus{outline:none;border-color:var(--gold)}
+.panel .seen-note{margin-top:-8px;font-size:.92rem}
+.player-list{display:grid;gap:8px;width:100%}
+.player-row{display:flex;gap:8px;align-items:stretch}
+.player-pick{flex:1;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:#101a38;cursor:pointer;text-align:left;min-width:0}
+.player-pick.on{border-color:var(--gold)}
+.player-pick b{font-family:var(--display);font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.player-pick span{flex:none;font-size:.85rem;color:var(--muted)}
+.player-del{flex:none;min-width:44px;padding:0 10px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;font-weight:700}
+.player-del.armed{color:#ff8a82;border-color:#ff8a82}
+.add-player{display:grid;grid-template-columns:1fr auto;gap:8px;width:100%}
 .modes{display:grid;gap:10px;width:100%}
 .mode-btn{display:grid;grid-template-columns:52px 1fr;gap:14px;align-items:center;width:100%;padding:14px;text-align:left;cursor:pointer;
   background:#101a38;border:2px solid var(--line);border-radius:18px;box-shadow:0 4px 0 #0a1128}
@@ -297,6 +311,12 @@ button{font:inherit;color:inherit}
     </h1>
     <span class="pick-label">Choose how to play</span>
     <p class="sub deal-note">Every game deals 6 of 12 categories.</p>
+    <div class="who">
+      <label class="lbl" for="playerName">Playing as</label>
+      <input class="name-input" id="playerName" type="text" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Your name">
+      <button class="ghost-btn" id="playersBtn" type="button">Switch</button>
+    </div>
+    <p class="sub seen-note" id="seenNote"></p>
     <div class="modes">
       <button class="mode-btn" id="modeSpin" type="button">
         <span class="mode-icon" aria-hidden="true"></span>
@@ -315,6 +335,19 @@ button{font:inherit;color:inherit}
         </span>
       </button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="playersOverlay" role="dialog" aria-modal="true" aria-labelledby="playersTitle" hidden>
+  <div class="panel">
+    <h2 id="playersTitle">Who's playing?</h2>
+    <p class="sub">Everyone on this device gets their own question history and best scores.</p>
+    <div class="player-list" id="playerList"></div>
+    <form class="add-player" id="addPlayerForm">
+      <input class="name-input" id="newPlayerName" type="text" maxlength="16" autocomplete="off" placeholder="Add a player" aria-label="New player's name">
+      <button class="ghost-btn" type="submit">Add</button>
+    </form>
+    <button class="big-btn" id="playersDone" type="button">Done</button>
   </div>
 </div>
 
@@ -452,7 +485,36 @@ button{font:inherit;color:inherit}
       [5,"What is the smallest bone in the human body?","The stapes","The incus","The malleus","The hyoid"],
       [5,"Which planet takes the longest to spin once on its axis?","Venus","Mercury","Jupiter","Neptune"],
       [5,"Roughly how fast does sound travel through air?","About 340 metres per second","About 34 metres per second","About 3,400 metres per second","About 34,000 metres per second"],
-      [5,"Which non-metal element is a liquid at room temperature?","Bromine","Iodine","Chlorine","Fluorine"]
+      [5,"Which non-metal element is a liquid at room temperature?","Bromine","Iodine","Chlorine","Fluorine"],
+      [1,"Which planet is closest to the Sun?","Mercury","Venus","Mars","Earth"],
+      [1,"How many planets are in our solar system?","8","9","7","10"],
+      [1,"What do you call animals that eat only plants?","Herbivores","Carnivores","Omnivores","Insectivores"],
+      [1,"What is the outermost layer of the Earth called?","The crust","The mantle","The outer core","The inner core"],
+      [2,"What is the chemical symbol for potassium?","K","P","Po","Pt"],
+      [2,"Which part of the eye controls how much light gets in?","The iris","The retina","The lens","The cornea"],
+      [2,"What is Jupiter's Great Red Spot?","A giant storm","A volcano","A crater","An ocean"],
+      [2,"What kind of rock forms when lava cools?","Igneous","Sedimentary","Metamorphic","Limestone"],
+      [2,"Animals with a backbone are called what?","Vertebrates","Invertebrates","Arthropods","Mollusks"],
+      [2,"How many teeth does an adult human usually have?","32","28","30","36"],
+      [3,"What is the unit of force?","Newton","Joule","Pascal","Watt"],
+      [3,"What is the unit of energy?","Joule","Newton","Watt","Volt"],
+      [3,"Which blood cells fight infection?","White blood cells","Red blood cells","Platelets","Plasma"],
+      [3,"Who argued in 1543 that the Earth goes around the Sun?","Nicolaus Copernicus","Galileo Galilei","Ptolemy","Johannes Kepler"],
+      [3,"What does a Geiger counter detect?","Radiation","Earthquakes","Magnetism","Humidity"],
+      [3,"What is the hardest substance in the human body?","Tooth enamel","Bone","Fingernail","Cartilage"],
+      [3,"Which large spiral galaxy is the Milky Way's nearest big neighbour?","Andromeda","Triangulum","Whirlpool","Sombrero"],
+      [3,"Titan is a moon of which planet?","Saturn","Jupiter","Neptune","Uranus"],
+      [4,"Who worked out the laws of planetary motion?","Johannes Kepler","Galileo Galilei","Nicolaus Copernicus","Tycho Brahe"],
+      [4,"Which element has atomic number 6?","Carbon","Oxygen","Nitrogen","Boron"],
+      [4,"What is the chemical formula for ozone?","O₃","O₂","CO₂","H₂O₂"],
+      [4,"Where in a cell are proteins made?","Ribosomes","The nucleus","The Golgi apparatus","Lysosomes"],
+      [4,"What is the medical name for the kneecap?","Patella","Fibula","Scapula","Clavicle"],
+      [4,"What is the edge around a black hole that nothing can escape from called?","The event horizon","The singularity","The photon sphere","The accretion disk"],
+      [4,"Which organ makes bile?","The liver","The gallbladder","The pancreas","The stomach"],
+      [5,"Roughly what is Avogadro's number?","6.02 × 10²³","3.14 × 10²³","6.67 × 10⁻¹¹","9.81 × 10²"],
+      [5,"Which planet is less dense than water?","Saturn","Jupiter","Uranus","Neptune"],
+      [5,"Who measured the charge of the electron with his oil-drop experiment?","Robert Millikan","J. J. Thomson","Ernest Rutherford","Niels Bohr"],
+      [5,"Which greenhouse gas is the most plentiful in Earth's atmosphere?","Water vapour","Carbon dioxide","Methane","Nitrous oxide"]
     ],
     history:[
       [1,"In what year did World War II end?","1945","1944","1939","1950"],
@@ -492,7 +554,37 @@ button{font:inherit;color:inherit}
       [5,"In what year did the Ottomans capture Constantinople?","1453","1204","1492","1683"],
       [5,"Which pharaoh built the Great Pyramid of Giza?","Khufu","Khafre","Menkaure","Djoser"],
       [5,"The ancient Kingdom of Aksum was centred in which modern country?","Ethiopia","Egypt","Sudan","Kenya"],
-      [5,"Which Asante queen mother led the 1900 War of the Golden Stool?","Yaa Asantewaa","Queen Nzinga","Queen Amina","Nana Asma'u"]
+      [5,"Which Asante queen mother led the 1900 War of the Golden Stool?","Yaa Asantewaa","Queen Nzinga","Queen Amina","Nana Asma'u"],
+      [1,"Who was the first President of the United States?","George Washington","John Adams","Thomas Jefferson","Benjamin Franklin"],
+      [1,"In what year did people first land on the Moon?","1969","1965","1972","1961"],
+      [1,"Apartheid was a system of racial segregation in which country?","South Africa","Kenya","Nigeria","Egypt"],
+      [2,"In which country did the Industrial Revolution begin?","Britain","France","Germany","United States"],
+      [2,"Who led the Soviet Union for most of World War II?","Joseph Stalin","Vladimir Lenin","Nikita Khrushchev","Leon Trotsky"],
+      [2,"What was the ancient trade route linking China and the Mediterranean called?","The Silk Road","The Amber Road","The Royal Road","The Inca Road"],
+      [2,"Whose arrest sparked the 1955 Montgomery bus boycott?","Rosa Parks","Claudette Colvin","Coretta Scott King","Ella Baker"],
+      [2,"Who wrote the first draft of the Declaration of Independence?","Thomas Jefferson","Benjamin Franklin","John Adams","James Madison"],
+      [2,"Which Greek city-state was famous for its warriors and rivalry with Athens?","Sparta","Corinth","Thebes","Troy"],
+      [2,"What was the US space programme that landed people on the Moon?","Apollo","Gemini","Mercury","Artemis"],
+      [2,"Which document begins with the words \"We the People\"?","The US Constitution","The Declaration of Independence","The Bill of Rights","The Gettysburg Address"],
+      [3,"Who was the first woman to fly solo across the Atlantic?","Amelia Earhart","Bessie Coleman","Harriet Quimby","Jacqueline Cochran"],
+      [3,"Which country did the US fight in the War of 1812?","Britain","France","Spain","Mexico"],
+      [3,"Whose expedition made the first voyage around the world, finished in 1522?","Ferdinand Magellan's","Vasco da Gama's","Christopher Columbus's","James Cook's"],
+      [3,"Which explorer first sailed from Europe to India around Africa?","Vasco da Gama","Bartolomeu Dias","Ferdinand Magellan","Henry the Navigator"],
+      [3,"Which emperor of Ethiopia was crowned in 1930?","Haile Selassie","Menelik II","Tewodros II","Yohannes IV"],
+      [3,"Who won the Battle of Hastings in 1066?","William the Conqueror","Harold Godwinson","Richard the Lionheart","Alfred the Great"],
+      [3,"Which formerly enslaved man is the best-known leader of the Haitian Revolution?","Toussaint Louverture","Simón Bolívar","Marcus Garvey","Nat Turner"],
+      [3,"In what year did India become independent from Britain?","1947","1950","1945","1919"],
+      [4,"Who was the first emperor of a unified China?","Qin Shi Huang","Kublai Khan","Sun Yat-sen","Wu Zetian"],
+      [4,"Which female pharaoh built the temple at Deir el-Bahari?","Hatshepsut","Nefertiti","Cleopatra","Nefertari"],
+      [4,"Which queen of Ndongo and Matamba fought the Portuguese in the 1600s?","Queen Nzinga","Yaa Asantewaa","Queen Amina","Makeda"],
+      [4,"Which king built the Zulu Kingdom into a major power in the early 1800s?","Shaka","Cetshwayo","Dingane","Mzilikazi"],
+      [4,"The Code of Hammurabi comes from which ancient civilization?","Babylon","Egypt","Assyria","Persia"],
+      [4,"What was the capital of the Inca Empire?","Cusco","Lima","Quito","Machu Picchu"],
+      [4,"The Benin Bronzes come from a kingdom in which modern country?","Nigeria","Benin","Ghana","Togo"],
+      [5,"Which people carved the city of Petra into rock?","The Nabataeans","The Romans","The Persians","The Phoenicians"],
+      [5,"In what year was the Great Fire of London?","1666","1606","1688","1700"],
+      [5,"Who was the first President of Ghana's Fourth Republic, from 1993?","Jerry Rawlings","John Kufuor","John Mahama","Hilla Limann"],
+      [5,"Which 1494 treaty split newly found lands between Spain and Portugal?","The Treaty of Tordesillas","The Treaty of Utrecht","The Peace of Westphalia","The Treaty of Paris"]
     ],
     geo:[
       [1,"What is the capital of Australia?","Canberra","Sydney","Melbourne","Perth"],
@@ -531,7 +623,36 @@ button{font:inherit;color:inherit}
       [5,"What is the official capital of Tanzania?","Dodoma","Dar es Salaam","Arusha","Zanzibar City"],
       [5,"What is the capital of Burkina Faso?","Ouagadougou","Bamako","Niamey","Lomé"],
       [5,"What is the largest landlocked country in the world?","Kazakhstan","Mongolia","Chad","Bolivia"],
-      [5,"In Tanzania, Lake Malawi goes by what other name?","Lake Nyasa","Lake Kivu","Lake Turkana","Lake Albert"]
+      [5,"In Tanzania, Lake Malawi goes by what other name?","Lake Nyasa","Lake Kivu","Lake Turkana","Lake Albert"],
+      [1,"What is the capital of Spain?","Madrid","Barcelona","Seville","Lisbon"],
+      [1,"What is the capital of Kenya?","Nairobi","Mombasa","Kampala","Addis Ababa"],
+      [1,"What is the capital of South Korea?","Seoul","Busan","Pyongyang","Incheon"],
+      [1,"What is the capital of Egypt?","Cairo","Alexandria","Giza","Luxor"],
+      [2,"What is the capital of Argentina?","Buenos Aires","Córdoba","Santiago","Montevideo"],
+      [2,"What is the capital of Ethiopia?","Addis Ababa","Asmara","Nairobi","Khartoum"],
+      [2,"What is the capital of Jamaica?","Kingston","Montego Bay","Port of Spain","Nassau"],
+      [2,"What is the capital of Peru?","Lima","Cusco","Quito","La Paz"],
+      [2,"Mount Kilimanjaro is in which country?","Tanzania","Kenya","Uganda","Ethiopia"],
+      [3,"Kumasi is the capital of which Ghanaian region?","Ashanti","Volta","Northern","Central"],
+      [3,"Which mountain range is often used as the border between Europe and Asia?","The Urals","The Alps","The Carpathians","The Himalayas"],
+      [3,"What is the capital of Senegal?","Dakar","Bamako","Banjul","Conakry"],
+      [3,"Victoria Falls lies on the border of Zambia and which country?","Zimbabwe","Malawi","Botswana","Mozambique"],
+      [3,"What is the longest river in Asia?","The Yangtze","The Mekong","The Ganges","The Yellow River"],
+      [3,"Which strait separates Asia from North America?","The Bering Strait","The Strait of Hormuz","The Strait of Magellan","The Strait of Malacca"],
+      [3,"Which Italian city is built on more than 100 small islands?","Venice","Naples","Genoa","Florence"],
+      [3,"Which river forms much of the border between the US and Mexico?","The Rio Grande","The Colorado","The Mississippi","The Pecos"],
+      [3,"What is the largest island in the world?","Greenland","New Guinea","Borneo","Madagascar"],
+      [4,"Which river flows through Baghdad?","The Tigris","The Euphrates","The Jordan","The Nile"],
+      [4,"What is the official capital of Côte d'Ivoire?","Yamoussoukro","Abidjan","Bouaké","Accra"],
+      [4,"What is the largest country in Africa by area?","Algeria","DR Congo","Sudan","Libya"],
+      [4,"What is the capital of Mongolia?","Ulaanbaatar","Astana","Bishkek","Hohhot"],
+      [4,"What is the smallest country on mainland Africa?","The Gambia","Eswatini","Djibouti","Rwanda"],
+      [4,"What is the capital of Sierra Leone?","Freetown","Monrovia","Conakry","Bissau"],
+      [4,"What is the capital of Liberia?","Monrovia","Freetown","Conakry","Abidjan"],
+      [5,"What is the capital of Bhutan?","Thimphu","Kathmandu","Paro","Lhasa"],
+      [5,"Which is the second-deepest lake in the world?","Lake Tanganyika","Lake Malawi","Lake Victoria","Crater Lake"],
+      [5,"What is the capital of Laos?","Vientiane","Phnom Penh","Bangkok","Luang Prabang"],
+      [5,"Before Abuja, what was Nigeria's capital?","Lagos","Ibadan","Kano","Enugu"]
     ],
     sports:[
       [1,"Which boxer called himself \"The Greatest\"?","Muhammad Ali","Joe Frazier","Mike Tyson","Sugar Ray Leonard"],
@@ -566,7 +687,34 @@ button{font:inherit;color:inherit}
       [5,"In which country was table tennis invented?","England","China","Japan","Sweden"],
       [5,"How wide is an official table tennis ball?","40 mm","38 mm","44 mm","35 mm"],
       [5,"James Naismith, who invented basketball, was born in which country?","Canada","United States","England","Scotland"],
-      [5,"Which country has won the most Rugby World Cups?","South Africa","New Zealand","Australia","England"]
+      [5,"Which country has won the most Rugby World Cups?","South Africa","New Zealand","Australia","England"],
+      [1,"How many players does a soccer team have on the field?","11","9","10","12"],
+      [1,"In which sport do players hit a puck?","Ice hockey","Field hockey","Lacrosse","Curling"],
+      [1,"In soccer, what is it called when one player scores three goals in a game?","A hat trick","A triple","A treble","A clean sweep"],
+      [1,"How long is a soccer match, not counting stoppage time?","90 minutes","80 minutes","100 minutes","60 minutes"],
+      [2,"How many players does a baseball team have on the field?","9","10","11","8"],
+      [2,"In bowling, what is it called when you clear all 10 pins with two balls?","A spare","A strike","A split","A double"],
+      [2,"How many points is a field goal worth in American football?","3","2","1","6"],
+      [2,"Which country has won the most Olympic gold medals overall?","United States","China","Russia","Great Britain"],
+      [2,"Capoeira, a martial art mixed with dance, comes from which country?","Brazil","Japan","Thailand","Korea"],
+      [2,"Muay Thai comes from which country?","Thailand","Vietnam","Cambodia","Japan"],
+      [2,"Which country has won the most Olympic gold medals in table tennis?","China","Japan","South Korea","Sweden"],
+      [2,"Which Grand Slam tennis tournament is played on grass?","Wimbledon","The US Open","The French Open","The Australian Open"],
+      [2,"What is Ghana's national football team nicknamed?","The Black Stars","The Super Eagles","The Indomitable Lions","The Pharaohs"],
+      [3,"Which country won the 2014 FIFA World Cup?","Germany","Argentina","Brazil","Spain"],
+      [3,"Who has won the most Olympic medals of any athlete?","Michael Phelps","Larisa Latynina","Usain Bolt","Carl Lewis"],
+      [3,"In bowling, what is three strikes in a row called?","A turkey","A hat trick","A triple","A clean sweep"],
+      [3,"How long is one lap of a standard outdoor running track?","400 metres","200 metres","500 metres","800 metres"],
+      [3,"Who is the NBA's all-time leading scorer?","LeBron James","Kareem Abdul-Jabbar","Michael Jordan","Kobe Bryant"],
+      [3,"In which city did Jesse Owens win four gold medals in 1936?","Berlin","London","Los Angeles","Amsterdam"],
+      [3,"Which man has won the most Grand Slam singles titles in tennis?","Novak Djokovic","Rafael Nadal","Roger Federer","Pete Sampras"],
+      [4,"What is the maximum break in snooker?","147","155","140","180"],
+      [4,"In what year did Jackie Robinson break Major League Baseball's colour line?","1947","1950","1945","1955"],
+      [4,"What is the NBA championship trophy called?","The Larry O'Brien Trophy","The Vince Lombardi Trophy","The Naismith Trophy","The Stanley Cup"],
+      [5,"How wide is a regulation basketball hoop?","18 inches","16 inches","20 inches","24 inches"],
+      [5,"Which country won the first Africa Cup of Nations in 1957?","Egypt","Ghana","Sudan","Ethiopia"],
+      [5,"In golf, what is a score of four under par on one hole called?","A condor","An albatross","An eagle","An ace"],
+      [5,"In table tennis, how high must you toss the ball on a serve?","At least 16 cm","At least 6 cm","At least 10 cm","At least 30 cm"]
     ],
     film:[
       [1,"Wakanda is the home country in which movie?","Black Panther","Thor","Aquaman","Avatar"],
@@ -603,7 +751,35 @@ button{font:inherit;color:inherit}
       [4,"What was Disney's first full-length animated feature?","Snow White and the Seven Dwarfs","Pinocchio","Fantasia","Bambi"],
       [5,"Which film won the very first Oscar for Best Picture?","Wings","Sunrise","The Jazz Singer","Metropolis"],
       [5,"Which actor has won the most Oscars for Best Actor?","Daniel Day-Lewis","Jack Nicholson","Tom Hanks","Marlon Brando"],
-      [5,"Which was the first film to win all five major Oscars?","It Happened One Night","One Flew Over the Cuckoo's Nest","The Silence of the Lambs","Casablanca"]
+      [5,"Which was the first film to win all five major Oscars?","It Happened One Night","One Flew Over the Cuckoo's Nest","The Silence of the Lambs","Casablanca"],
+      [1,"What kind of fish is Nemo?","A clownfish","A blue tang","A goldfish","An angelfish"],
+      [1,"Which school does Harry Potter go to?","Hogwarts","Durmstrang","Beauxbatons","Ilvermorny"],
+      [1,"Who played T'Challa in Black Panther (2018)?","Chadwick Boseman","Michael B. Jordan","Daniel Kaluuya","Winston Duke"],
+      [1,"Who played Rocky Balboa?","Sylvester Stallone","Arnold Schwarzenegger","Robert De Niro","Al Pacino"],
+      [2,"Who directed Black Panther (2018)?","Ryan Coogler","Jordan Peele","Barry Jenkins","Ava DuVernay"],
+      [2,"In The Fresh Prince of Bel-Air, which family does Will move in with?","The Banks family","The Huxtables","The Winslows","The Evans family"],
+      [2,"Who played Morpheus in The Matrix?","Laurence Fishburne","Samuel L. Jackson","Keanu Reeves","Hugo Weaving"],
+      [2,"Nigeria's film industry is known as what?","Nollywood","Ghallywood","Bollywood","Kollywood"],
+      [2,"In which film does Bruce Willis fight terrorists in Nakatomi Plaza?","Die Hard","Speed","Lethal Weapon","The Last Boy Scout"],
+      [3,"The 90s sitcom Living Single is set in which New York borough?","Brooklyn","Harlem","Queens","The Bronx"],
+      [3,"Which show follows the Dunphy and Pritchett families?","Modern Family","This Is Us","Parenthood","Black-ish"],
+      [3,"Who created Atlanta and stars in it as Earn?","Donald Glover","Lakeith Stanfield","Brian Tyree Henry","Jordan Peele"],
+      [3,"Which 1975 Spielberg film is called the first summer blockbuster?","Jaws","Close Encounters of the Third Kind","E.T.","Duel"],
+      [3,"Who directed The Grand Budapest Hotel?","Wes Anderson","Sofia Coppola","Noah Baumbach","Spike Jonze"],
+      [3,"Who played Tony Soprano?","James Gandolfini","Robert De Niro","Michael Imperioli","Al Pacino"],
+      [3,"The Wire is set in which city?","Baltimore","Philadelphia","Detroit","Chicago"],
+      [3,"For which film did Lupita Nyong'o win her Oscar?","12 Years a Slave","Black Panther","Us","Selma"],
+      [3,"Who composed the music for Jaws and Star Wars?","John Williams","Hans Zimmer","Ennio Morricone","Howard Shore"],
+      [3,"What is the computer called in 2001: A Space Odyssey?","HAL 9000","Skynet","Mother","JARVIS"],
+      [4,"In Game of Thrones, what is Jon Snow's direwolf called?","Ghost","Nymeria","Summer","Grey Wind"],
+      [4,"Which film won Best Picture for 2022?","Everything Everywhere All at Once","The Banshees of Inisherin","Top Gun: Maverick","Tár"],
+      [4,"Who directed Selma (2014)?","Ava DuVernay","Ryan Coogler","Gina Prince-Bythewood","Kasi Lemmons"],
+      [4,"What is the company called in the TV series Severance?","Lumon Industries","Hooli","Cyberdyne Systems","Weyland-Yutani"],
+      [4,"In Seinfeld, what is Kramer's first name?","Cosmo","Kenny","Jerome","Newman"],
+      [4,"In what year did The Simpsons first air as a full series?","1989","1987","1992","1985"],
+      [4,"Who directed Blade Runner (1982)?","Ridley Scott","James Cameron","John Carpenter","Denis Villeneuve"],
+      [5,"Which film won the first Oscar for Best Animated Feature?","Shrek","Monsters, Inc.","Spirited Away","Ice Age"],
+      [5,"For which film did Sidney Poitier win Best Actor?","Lilies of the Field","In the Heat of the Night","Guess Who's Coming to Dinner","To Sir, with Love"]
     ],
     horror:[
       [1,"In which film does Freddy Krueger attack people in their dreams?","A Nightmare on Elm Street","Halloween","Friday the 13th","Scream"],
@@ -638,7 +814,37 @@ button{font:inherit;color:inherit}
       [5,"Who directed the original Candyman (1992)?","Bernard Rose","Clive Barker","Nia DaCosta","Wes Craven"],
       [5,"Who directed the 1922 silent vampire film Nosferatu?","F. W. Murnau","Fritz Lang","Robert Wiene","Carl Theodor Dreyer"],
       [5,"What is the demon called in The Exorcist?","Pazuzu","Valak","Bughuul","Paimon"],
-      [5,"In Hereditary, which demon king is the cult devoted to?","Paimon","Pazuzu","Valak","Baal"]
+      [5,"In Hereditary, which demon king is the cult devoted to?","Paimon","Pazuzu","Valak","Baal"],
+      [1,"Which film has a shark terrorising Amity Island?","Jaws","Deep Blue Sea","The Meg","Open Water"],
+      [1,"What is the possessed doll called in The Conjuring films?","Annabelle","Chucky","Robert","Brahms"],
+      [1,"Which horror killer wears a hockey mask?","Jason Voorhees","Michael Myers","Leatherface","Freddy Krueger"],
+      [2,"Who wrote the novel Dracula?","Bram Stoker","Mary Shelley","Edgar Allan Poe","H. P. Lovecraft"],
+      [2,"Which film features the line \"Here's Johnny!\"?","The Shining","Halloween","The Fog","Friday the 13th"],
+      [2,"In The Silence of the Lambs, what was Hannibal Lecter's job?","Psychiatrist","Surgeon","Professor","Detective"],
+      [2,"In Get Out, what is the frozen state Chris sinks into called?","The Sunken Place","The Void","The Further","The Upside Down"],
+      [3,"What are the paranormal investigators called in The Conjuring?","Ed and Lorraine Warren","Ed and Mary Warren","Carl and Lisa Warren","Paul and Linda Warren"],
+      [3,"Who directed The Witch (2015) and The Lighthouse?","Robert Eggers","Ari Aster","Jordan Peele","Jennifer Kent"],
+      [3,"Which 1982 John Carpenter film is set at an Antarctic research station?","The Thing","The Fog","They Live","Prince of Darkness"],
+      [3,"How do you summon Candyman?","Say his name five times in a mirror","Say his name three times in a mirror","Light five candles","Knock five times"],
+      [3,"In Midsommar, the festival takes place in which country?","Sweden","Norway","Finland","Denmark"],
+      [3,"It is set in which fictional Maine town?","Derry","Castle Rock","Haddonfield","Woodsboro"],
+      [3,"The original Halloween takes place in which town?","Haddonfield","Derry","Springwood","Woodsboro"],
+      [3,"Friday the 13th is set at which summer camp?","Camp Crystal Lake","Camp Arawak","Camp Blackfoot","Camp Redwood"],
+      [3,"Which 1968 Roman Polanski film is about a woman carrying a demonic child?","Rosemary's Baby","The Omen","The Exorcist","Carrie"],
+      [3,"The original Ringu (1998) came from which country?","Japan","South Korea","China","Thailand"],
+      [3,"Who directed Scream (1996)?","Wes Craven","John Carpenter","Sam Raimi","Kevin Williamson"],
+      [3,"In Insidious, what is the spirit world called?","The Further","The Sunken Place","The Upside Down","The Other Side"],
+      [4,"The Babadook was made in which country?","Australia","United Kingdom","New Zealand","Canada"],
+      [4,"In A Nightmare on Elm Street, what is the town called?","Springwood","Haddonfield","Derry","Crystal Lake"],
+      [4,"Who played Marion Crane in Psycho (1960)?","Janet Leigh","Grace Kelly","Tippi Hedren","Vera Miles"],
+      [4,"Who wrote The Haunting of Hill House (1959)?","Shirley Jackson","Stephen King","Anne Rice","Daphne du Maurier"],
+      [4,"Which 1931 film made Bela Lugosi famous?","Dracula","Nosferatu","Frankenstein","The Mummy"],
+      [4,"Who played Frankenstein's monster in the 1931 film?","Boris Karloff","Bela Lugosi","Lon Chaney","Vincent Price"],
+      [4,"In The Conjuring 2, which demon appears as a nun?","Valak","Pazuzu","Bughuul","Paimon"],
+      [4,"In what year did the first Saw come out?","2004","2001","2007","1999"],
+      [5,"Who directed the original Suspiria (1977)?","Dario Argento","Mario Bava","Lucio Fulci","Luca Guadagnino"],
+      [5,"Who wrote the novel The Exorcist?","William Peter Blatty","Ira Levin","Stephen King","Peter Straub"],
+      [5,"In Ti West's X (2022), Mia Goth plays Maxine and which other character?","Pearl","Lorraine","Bobby-Lynne","Wayne"]
     ],
     music:[
       [1,"Who is known as the King of Pop?","Michael Jackson","Prince","Elvis Presley","Stevie Wonder"],
@@ -674,7 +880,36 @@ button{font:inherit;color:inherit}
       [5,"Which Burna Boy album won the Grammy for Best Global Music Album in 2021?","Twice as Tall","African Giant","Love, Damini","I Told Them..."],
       [5,"In what year did MTV launch?","1981","1975","1985","1990"],
       [5,"What is the Yoruba talking drum called?","Dùndún","Djembe","Kora","Balafon"],
-      [5,"Which Ghanaian bandleader is called the King of Highlife?","E. T. Mensah","Fela Kuti","Kojo Antwi","Sarkodie"]
+      [5,"Which Ghanaian bandleader is called the King of Highlife?","E. T. Mensah","Fela Kuti","Kojo Antwi","Sarkodie"],
+      [1,"How many strings does a standard guitar have?","6","4","5","7"],
+      [1,"Which country is Burna Boy from?","Nigeria","Ghana","South Africa","Kenya"],
+      [2,"Lauryn Hill first became famous with which group?","Fugees","TLC","The Roots","A Tribe Called Quest"],
+      [2,"Which brass instrument has a slide?","Trombone","Trumpet","Tuba","French horn"],
+      [2,"Which music style was born in New Orleans in the early 1900s?","Jazz","Blues","Rock and roll","Hip-hop"],
+      [2,"What does \"a cappella\" mean?","Singing without instruments","Singing very fast","Singing in a church","Singing softly"],
+      [2,"What kind of instrument is a djembe?","A drum","A flute","A string instrument","A xylophone"],
+      [2,"What is the highest female singing voice?","Soprano","Alto","Mezzo-soprano","Contralto"],
+      [2,"How many lines are on a musical staff?","5","4","6","7"],
+      [3,"Who is known as the Queen of Hip-Hop Soul?","Mary J. Blige","Missy Elliott","Lauryn Hill","Faith Evans"],
+      [3,"Diana Ross led which Motown group?","The Supremes","The Marvelettes","The Ronettes","Martha and the Vandellas"],
+      [3,"Who wrote The Four Seasons?","Antonio Vivaldi","Johann Sebastian Bach","George Frideric Handel","Wolfgang Amadeus Mozart"],
+      [3,"Amapiano comes from which country?","South Africa","Nigeria","Ghana","Kenya"],
+      [3,"Which Ghanaian genre blends highlife with hip-hop?","Hiplife","Afrobeats","Azonto","Palm-wine"],
+      [3,"Who wrote the opera The Magic Flute?","Mozart","Verdi","Wagner","Puccini"],
+      [3,"Whose debut album was Illmatic (1994)?","Nas","Jay-Z","The Notorious B.I.G.","Mobb Deep"],
+      [3,"What does \"allegro\" mean in music?","Fast and lively","Slow","Loud","Softly"],
+      [3,"Who produced Dr. Dre's The Chronic?","Dr. Dre","DJ Premier","Pete Rock","Timbaland"],
+      [3,"Which South African singer was called Mama Africa?","Miriam Makeba","Brenda Fassie","Yvonne Chaka Chaka","Angélique Kidjo"],
+      [4,"A chord of three notes stacked in thirds is called a what?","A triad","A trio","A tritone","An octave"],
+      [4,"Counting black and white keys, how many different notes are in one octave on a piano?","12","8","7","10"],
+      [4,"Who was called the High Priestess of Soul?","Nina Simone","Aretha Franklin","Billie Holiday","Chaka Khan"],
+      [4,"What was Prince's last name?","Nelson","Rogers","Jackson","Jones"],
+      [4,"Which group released The Low End Theory?","A Tribe Called Quest","De La Soul","The Roots","Public Enemy"],
+      [4,"What does \"fortissimo\" mean?","Very loud","Very soft","Very fast","Very slow"],
+      [5,"In what year did Bob Marley die?","1981","1979","1985","1977"],
+      [5,"Who wrote the jazz standard \"Take the 'A' Train\"?","Billy Strayhorn","Duke Ellington","Thelonious Monk","Count Basie"],
+      [5,"Who was the first woman inducted into the Rock and Roll Hall of Fame?","Aretha Franklin","Tina Turner","Janis Joplin","Etta James"],
+      [5,"What is the wooden xylophone of Ghana's Upper West called?","Gyil","Balafon","Kora","Mbira"]
     ],
     food:[
       [1,"Which country does sushi come from?","Japan","China","Korea","Thailand"],
@@ -710,7 +945,39 @@ button{font:inherit;color:inherit}
       [5,"The croissant grew from a pastry first made in which country?","Austria","France","Belgium","Switzerland"],
       [5,"By US law, bourbon must be made mostly from which grain?","Corn","Rye","Wheat","Barley"],
       [5,"Bobotie, a spiced minced-meat bake, is a national dish of which country?","South Africa","Ghana","Kenya","Morocco"],
-      [5,"Which French mother sauce is milk thickened with a roux?","Béchamel","Velouté","Espagnole","Hollandaise"]
+      [5,"Which French mother sauce is milk thickened with a roux?","Béchamel","Velouté","Espagnole","Hollandaise"],
+      [1,"Which country is pizza Margherita from?","Italy","Greece","France","Spain"],
+      [1,"Jerk seasoning comes from which country?","Jamaica","Trinidad","Cuba","Haiti"],
+      [1,"Which cheese goes in a classic Greek salad?","Feta","Halloumi","Ricotta","Mozzarella"],
+      [1,"Besides coconut, which fruit goes in a piña colada?","Pineapple","Mango","Banana","Passion fruit"],
+      [2,"Which spice gives curry its yellow colour?","Turmeric","Paprika","Cumin","Saffron"],
+      [2,"Risotto is made with which grain?","Rice","Barley","Couscous","Quinoa"],
+      [2,"Kelewele is spiced, fried what?","Plantain","Yam","Cassava","Cocoyam"],
+      [2,"What is the Japanese dish of sliced raw fish without rice?","Sashimi","Sushi","Tempura","Nigiri"],
+      [2,"Tagine is a classic dish of which country?","Morocco","Egypt","Lebanon","Turkey"],
+      [2,"Poutine comes from which country?","Canada","France","Belgium","United States"],
+      [2,"What does \"al dente\" mean for pasta?","Firm to the bite","Very soft","Overcooked","Served with sauce"],
+      [2,"Which bread is baked in a tandoor oven?","Naan","Chapati","Puri","Dosa"],
+      [2,"What do pigs and dogs sniff out in the woods of Italy and France?","Truffles","Morels","Chestnuts","Pine nuts"],
+      [3,"Couscous is made from what?","Semolina wheat","Rice","Corn","Millet"],
+      [3,"Red red is a Ghanaian stew made mainly from what?","Black-eyed beans","Rice","Okra","Fish"],
+      [3,"Traditional mozzarella di bufala is made from which milk?","Water buffalo","Cow","Goat","Sheep"],
+      [3,"What is ghee?","Clarified butter","Yogurt","Fresh cheese","Cream"],
+      [3,"Darjeeling tea comes from which country?","India","China","Sri Lanka","Kenya"],
+      [3,"Cinnamon comes from which part of a tree?","The bark","The leaves","The roots","The seeds"],
+      [3,"Shito, the Ghanaian sauce, is made mainly from what?","Hot pepper and dried fish","Peanuts and tomato","Palm nut and okra","Ginger and garlic"],
+      [3,"Which paprika-spiced stew is Hungary's national dish?","Goulash","Borscht","Pierogi","Moussaka"],
+      [3,"Japanese miso is made mainly from what?","Fermented soybeans","Rice flour","Seaweed","Fish"],
+      [3,"Egusi soup is thickened with what?","Ground melon seeds","Okra","Peanuts","Spinach"],
+      [3,"The caipirinha cocktail comes from which country?","Brazil","Cuba","Mexico","Peru"],
+      [3,"Which Swiss cheese is famous for its big holes?","Emmental","Gruyère","Raclette","Appenzeller"],
+      [4,"What gives Guinness its creamy head?","Nitrogen","Carbon dioxide","Oxygen","Helium"],
+      [4,"Which spice is the dried flower bud of a tree?","Cloves","Cinnamon","Nutmeg","Black pepper"],
+      [4,"Most restaurant \"wasabi\" outside Japan is mainly what?","Horseradish","Ginger","Seaweed","Celery"],
+      [4,"Real Kobe beef must come from cattle raised where?","Hyōgo, Japan","Kyoto, Japan","Kobe, Australia","Anywhere in Japan"],
+      [4,"What is the Ethiopian chilli spice blend called?","Berbere","Ras el hanout","Za'atar","Garam masala"],
+      [5,"What is a vol-au-vent?","A puff pastry case with a savoury filling","A chocolate cake","A cold soup","A type of crêpe"],
+      [5,"Alongside Pinot Noir and Pinot Meunier, which grape is used in most Champagne?","Chardonnay","Merlot","Riesling","Sauvignon Blanc"]
     ],
     animals:[
       [1,"What is the fastest land animal?","Cheetah","Lion","Pronghorn","Greyhound"],
@@ -741,7 +1008,37 @@ button{font:inherit;color:inherit}
       [5,"What is Scotland's national animal?","The unicorn","The red deer","The Highland cow","The lion"],
       [5,"What is a group of flamingos called?","A flamboyance","A parade","A pride","A gaggle"],
       [5,"Which animal has the largest eyes in the animal kingdom?","The colossal squid","The blue whale","The ostrich","The giant octopus"],
-      [5,"What word describes animals most active at dawn and dusk?","Crepuscular","Nocturnal","Diurnal","Matutinal"]
+      [5,"What word describes animals most active at dawn and dusk?","Crepuscular","Nocturnal","Diurnal","Matutinal"],
+      [1,"What is the tallest animal?","The giraffe","The elephant","The ostrich","The moose"],
+      [1,"What do caterpillars turn into?","Butterflies or moths","Beetles","Bees","Dragonflies"],
+      [1,"What is a baby goat called?","A kid","A calf","A lamb","A foal"],
+      [1,"What is a group of wolves called?","A pack","A pride","A herd","A flock"],
+      [1,"What is a group of fish called?","A school","A pod","A pack","A herd"],
+      [2,"Which lizard is famous for changing colour?","The chameleon","The iguana","The gecko","The skink"],
+      [2,"What is the largest species of cat?","The tiger","The lion","The jaguar","The leopard"],
+      [2,"Which bird is the fastest in a dive?","The peregrine falcon","The golden eagle","The swift","The albatross"],
+      [2,"Which flightless bird is a national symbol of New Zealand?","The kiwi","The emu","The kakapo","The cassowary"],
+      [2,"What does an ornithologist study?","Birds","Insects","Fish","Fossils"],
+      [3,"How many legs does a lobster have?","10","8","6","12"],
+      [3,"What is a baby swan called?","A cygnet","A gosling","A duckling","A cub"],
+      [3,"How many eyes do most spiders have?","8","6","4","2"],
+      [3,"What is the largest land carnivore?","The polar bear","The lion","The tiger","The grizzly bear"],
+      [3,"What is the largest species of penguin?","The emperor penguin","The king penguin","The Adélie penguin","The gentoo penguin"],
+      [3,"Which bird has the largest wingspan?","The wandering albatross","The Andean condor","The marabou stork","The bald eagle"],
+      [3,"Which mammal is covered in scales?","The pangolin","The hedgehog","The porcupine","The echidna"],
+      [3,"What is the largest rodent?","The capybara","The beaver","The porcupine","The coypu"],
+      [3,"What does a herpetologist study?","Reptiles and amphibians","Insects","Birds","Fish"],
+      [4,"Which animal has the densest fur?","The sea otter","The polar bear","The chinchilla","The Arctic fox"],
+      [4,"Which is the only marsupial native to the US?","The Virginia opossum","The raccoon","The skunk","The armadillo"],
+      [4,"What is a group of zebras called?","A dazzle","A parade","A crash","A tower"],
+      [4,"What is a group of rhinos called?","A crash","A dazzle","A tower","A bloat"],
+      [4,"Which animal has the highest blood pressure?","The giraffe","The elephant","The blue whale","The horse"],
+      [4,"Which is the longest snake in the world?","The reticulated python","The green anaconda","The king cobra","The boa constrictor"],
+      [4,"The hippo's closest living relatives are which animals?","Whales","Pigs","Rhinos","Elephants"],
+      [5,"What is a baby hare called?","A leveret","A kit","A kid","A pup"],
+      [5,"What is a group of ferrets called?","A business","A bloat","A crash","A sleuth"],
+      [5,"How many chambers does a crocodile's heart have?","4","3","2","5"],
+      [5,"Which animal makes the loudest sound?","The sperm whale","The blue whale","The howler monkey","The lion"]
     ],
     words:[
       [1,"What is a word that means the opposite of another word?","An antonym","A synonym","A homonym","An acronym"],
@@ -776,7 +1073,37 @@ button{font:inherit;color:inherit}
       [5,"What does \"sesquipedalian\" describe?","Using long words","Walking on stilts","Having six sides","Being very old"],
       [5,"What is the dot over a lowercase \"i\" called?","A tittle","A jot","A pip","A tick"],
       [5,"What is another name for the \"#\" symbol?","Octothorpe","Pilcrow","Ampersand","Interrobang"],
-      [5,"What does \"defenestration\" mean?","Throwing someone out of a window","Removing a fence","Taking down defences","Leaving a country"]
+      [5,"What does \"defenestration\" mean?","Throwing someone out of a window","Removing a fence","Taking down defences","Leaving a country"],
+      [1,"What is a word that means the same as another word?","A synonym","An antonym","A homonym","An acronym"],
+      [1,"What is the plural of \"mouse\"?","Mice","Mouses","Meese","Mousen"],
+      [2,"\"The wind whispered through the trees\" is an example of what?","Personification","A simile","Alliteration","Onomatopoeia"],
+      [2,"Words like \"buzz\" and \"sizzle\" that sound like what they mean are called what?","Onomatopoeia","Alliteration","Assonance","Hyperbole"],
+      [2,"\"Peter Piper picked a peck\" is an example of what?","Alliteration","Rhyme","Onomatopoeia","Irony"],
+      [2,"How do you spell the word that means \"to make room for\"?","Accommodate","Acommodate","Accomodate","Acomodate"],
+      [2,"How do you spell the word that means \"for sure\"?","Definitely","Definately","Definitly","Defanitely"],
+      [3,"What does RSVP stand for?","Répondez s'il vous plaît","Reply soon, very politely","Réservez s'il vous plaît","Rendez-vous s'il vous plaît"],
+      [3,"What does \"ambivalent\" mean?","Having mixed feelings","Able to use both hands","Very ambitious","Not interested"],
+      [3,"What does \"candid\" mean?","Honest and direct","Sweet","Hidden","Cheerful"],
+      [3,"What does \"mitigate\" mean?","Make less severe","Make worse","Put off","Measure"],
+      [3,"What does \"ostracize\" mean?","Shut someone out of a group","Praise in public","Copy someone","Exaggerate"],
+      [3,"What does \"verbose\" mean?","Using too many words","Very loud","Hard to hear","Rude"],
+      [3,"What does \"bona fide\" mean?","Genuine","Temporary","Expensive","Suspicious"],
+      [3,"What does \"cacophony\" mean?","A harsh mix of noises","A pleasant tune","Total silence","A choir"],
+      [3,"What does \"serendipity\" mean?","A happy accident","Calmness","Bad luck","Sadness"],
+      [3,"The word \"safari\" comes from which language?","Swahili","Zulu","Hindi","Portuguese"],
+      [4,"What does the Latin \"per se\" mean?","By itself","For example","Each one","On the contrary"],
+      [4,"What does \"ad nauseam\" mean?","Over and over, to a sickening degree","At night","Without permission","By force"],
+      [4,"What does \"quid pro quo\" mean?","Something for something","A fair trial","Money for nothing","As before"],
+      [4,"What does \"pernicious\" mean?","Harmful in a slow or subtle way","Very precise","Stubborn","Cheap"],
+      [4,"What does \"esoteric\" mean?","Understood by only a few","Popular","Out of date","Loud"],
+      [4,"In Twi, what does \"Wo ho te sɛn?\" mean?","How are you?","Where are you going?","What is your name?","Thank you"],
+      [4,"What does \"loquacious\" mean?","Very talkative","Local","Lazy","Lucky"],
+      [4,"What is a pangram?","A sentence that uses every letter of the alphabet","A word with every vowel","A sentence that reads the same backwards","A made-up word"],
+      [4,"What is a portmanteau word?","A blend of two words, like brunch","A word borrowed from French","A very long word","A word with two meanings"],
+      [4,"What does the Akan word \"Sankofa\" roughly mean?","Go back and get it","Unity is strength","God is king","Welcome home"],
+      [5,"What does \"pusillanimous\" mean?","Cowardly","Tiny","Pushy","Generous"],
+      [5,"What does \"apricity\" mean?","The warmth of the sun in winter","A fear of fruit","Early morning light","Summer rain"],
+      [5,"What does the Welsh word \"hiraeth\" describe?","A longing for home","A mountain","A festival","A greeting"]
     ],
     myth:[
       [1,"Who is king of the Greek gods?","Zeus","Poseidon","Hades","Apollo"],
@@ -813,7 +1140,38 @@ button{font:inherit;color:inherit}
       [4,"In Greek myth, who is Persephone's mother?","Demeter","Hera","Hestia","Rhea"],
       [5,"In the Anansi stories, which sky god does Anansi buy all stories from?","Nyame","Mawu","Olorun","Ogun"],
       [5,"In Egyptian myth, the heart of the dead is weighed against whose feather?","Ma'at","Isis","Hathor","Bastet"],
-      [5,"Which ibis-headed Egyptian god is the god of writing?","Thoth","Horus","Ptah","Khnum"]
+      [5,"Which ibis-headed Egyptian god is the god of writing?","Thoth","Horus","Ptah","Khnum"],
+      [1,"Who is the Greek god of the underworld?","Hades","Ares","Hermes","Apollo"],
+      [1,"Who is the Greek goddess of love?","Aphrodite","Athena","Hera","Hestia"],
+      [2,"Which Egyptian god is the god of the sun?","Ra","Osiris","Set","Anubis"],
+      [2,"Who is the messenger of the Greek gods?","Hermes","Apollo","Ares","Dionysus"],
+      [2,"Who is the Roman god of the sea?","Neptune","Pluto","Mercury","Saturn"],
+      [2,"Who is the one-eyed chief of the Norse gods?","Odin","Thor","Loki","Tyr"],
+      [2,"What is the three-headed dog that guards the Greek underworld?","Cerberus","Orthrus","Ladon","Typhon"],
+      [2,"What did Jason and the Argonauts go looking for?","The Golden Fleece","The Holy Grail","The Golden Apple","Poseidon's trident"],
+      [2,"Which Greek hero killed Medusa?","Perseus","Theseus","Heracles","Jason"],
+      [2,"Which Titan was punished by holding up the sky?","Atlas","Prometheus","Cronus","Hyperion"],
+      [2,"Who is the Roman god of love, shown with a bow and arrows?","Cupid","Apollo","Mercury","Bacchus"],
+      [3,"Who is the Greek god of wine and parties?","Dionysus","Apollo","Hermes","Pan"],
+      [3,"Which Egyptian god of the afterlife is the husband of Isis?","Osiris","Anubis","Set","Horus"],
+      [3,"Which falcon-headed god is the son of Isis and Osiris?","Horus","Ra","Thoth","Set"],
+      [3,"Who is the Yoruba orisha of iron and war?","Ogun","Shango","Eshu","Obatala"],
+      [3,"Who was Odysseus' faithful wife?","Penelope","Helen","Circe","Calypso"],
+      [3,"Whose face \"launched a thousand ships\"?","Helen of Troy","Penelope","Cassandra","Andromeda"],
+      [3,"What is the human world called in Norse myth?","Midgard","Asgard","Jotunheim","Niflheim"],
+      [3,"Which Hindu god is the destroyer in the trimurti?","Shiva","Brahma","Vishnu","Indra"],
+      [4,"Which Yoruba orisha is the trickster messenger of the crossroads?","Eshu","Ogun","Oya","Yemoja"],
+      [4,"Which giant wolf kills Odin at Ragnarök?","Fenrir","Sköll","Garm","Jörmungandr"],
+      [4,"Which Hindu goddess of wealth is married to Vishnu?","Lakshmi","Parvati","Saraswati","Durga"],
+      [4,"Which giant sea serpent circles the world in Norse myth?","Jörmungandr","Fenrir","Nidhogg","The Kraken"],
+      [4,"Which Trojan princess could see the future but was never believed?","Cassandra","Pythia","Medea","Ariadne"],
+      [4,"Which Yoruba orisha is the mother of the ocean?","Yemoja","Oshun","Oya","Obatala"],
+      [4,"Which Egyptian goddess has the head of a cat?","Bastet","Sekhmet","Hathor","Isis"],
+      [4,"What did Persephone eat in the underworld that tied her to it?","Pomegranate seeds","Figs","Grapes","Olives"],
+      [4,"Who is the sun goddess in Japanese myth?","Amaterasu","Izanami","Susanoo","Inari"],
+      [5,"Which Norse god guards the rainbow bridge Bifröst?","Heimdall","Tyr","Baldur","Bragi"],
+      [5,"In Akan belief, Asase Yaa is the goddess of what?","The earth","The sea","The moon","Rivers"],
+      [5,"Which Aztec war and sun god was the patron of Tenochtitlan?","Huitzilopochtli","Quetzalcoatl","Tlaloc","Xipe Totec"]
     ],
     art:[
       [1,"Who painted The Starry Night?","Vincent van Gogh","Claude Monet","Pablo Picasso","Salvador Dalí"],
@@ -853,7 +1211,38 @@ button{font:inherit;color:inherit}
       [5,"Which Ghanaian artist makes huge hangings from bottle caps?","El Anatsui","Ibrahim Mahama","Amoako Boafo","Yinka Shonibare"],
       [5,"Which Japanese artist made The Great Wave off Kanagawa?","Hokusai","Hiroshige","Utamaro","Yayoi Kusama"],
       [5,"Who wrote The Beautyful Ones Are Not Yet Born (1968)?","Ayi Kwei Armah","Ama Ata Aidoo","Kofi Awoonor","Chinua Achebe"],
-      [5,"What is painting onto wet plaster called?","Fresco","Tempera","Gouache","Encaustic"]
+      [5,"What is painting onto wet plaster called?","Fresco","Tempera","Gouache","Encaustic"],
+      [1,"Who painted the Mona Lisa?","Leonardo da Vinci","Michelangelo","Raphael","Rembrandt"],
+      [1,"Who wrote the Harry Potter books?","J. K. Rowling","Roald Dahl","C. S. Lewis","Philip Pullman"],
+      [1,"Who wrote Romeo and Juliet?","William Shakespeare","Charles Dickens","Jane Austen","Christopher Marlowe"],
+      [2,"Who wrote The Color Purple?","Alice Walker","Toni Morrison","Maya Angelou","Zora Neale Hurston"],
+      [2,"Who wrote To Kill a Mockingbird?","Harper Lee","Truman Capote","John Steinbeck","Flannery O'Connor"],
+      [2,"Andy Warhol was a leader of which art movement?","Pop Art","Cubism","Surrealism","Impressionism"],
+      [3,"The Prado museum is in which city?","Madrid","Barcelona","Lisbon","Rome"],
+      [3,"What are the three primary colours of light?","Red, green and blue","Red, yellow and blue","Cyan, magenta and yellow","Red, blue and white"],
+      [3,"Who wrote Go Tell It on the Mountain?","James Baldwin","Richard Wright","Ralph Ellison","Langston Hughes"],
+      [3,"Who wrote Les Misérables?","Victor Hugo","Alexandre Dumas","Émile Zola","Gustave Flaubert"],
+      [3,"Who wrote Crime and Punishment?","Fyodor Dostoevsky","Leo Tolstoy","Anton Chekhov","Ivan Turgenev"],
+      [3,"Who wrote Anna Karenina?","Leo Tolstoy","Fyodor Dostoevsky","Alexander Pushkin","Nikolai Gogol"],
+      [3,"Who wrote the play A Raisin in the Sun?","Lorraine Hansberry","August Wilson","Ntozake Shange","Langston Hughes"],
+      [3,"Who wrote the play Fences?","August Wilson","Lorraine Hansberry","Arthur Miller","Tennessee Williams"],
+      [3,"Who wrote The Handmaid's Tale?","Margaret Atwood","Octavia E. Butler","Ursula K. Le Guin","Doris Lessing"],
+      [4,"Who wrote Native Son (1940)?","Richard Wright","James Baldwin","Ralph Ellison","Chester Himes"],
+      [4,"Who painted The Kiss (1908)?","Gustav Klimt","Auguste Rodin","Egon Schiele","Edvard Munch"],
+      [4,"Faith Ringgold is best known for what kind of art?","Story quilts","Bronze sculpture","Photography","Ceramics"],
+      [4,"Who painted Las Meninas?","Diego Velázquez","Francisco Goya","El Greco","Bartolomé Murillo"],
+      [4,"Who wrote The Joy Luck Club?","Amy Tan","Maxine Hong Kingston","Celeste Ng","Jhumpa Lahiri"],
+      [4,"Who wrote Kindred (1979)?","Octavia E. Butler","N. K. Jemisin","Toni Morrison","Nnedi Okorafor"],
+      [4,"Who wrote The Brief Wondrous Life of Oscar Wao?","Junot Díaz","Julia Alvarez","Sandra Cisneros","Edwidge Danticat"],
+      [4,"Painting with tiny dots of colour, like Seurat, is called what?","Pointillism","Impasto","Sfumato","Chiaroscuro"],
+      [5,"Who painted The Card Players?","Paul Cézanne","Pierre-Auguste Renoir","Edgar Degas","Édouard Manet"],
+      [5,"Who painted The Third of May 1808?","Francisco Goya","Diego Velázquez","Eugène Delacroix","Théodore Géricault"],
+      [5,"Who painted Liberty Leading the People?","Eugène Delacroix","Jacques-Louis David","Francisco Goya","Gustave Courbet"],
+      [5,"Who wrote Our Sister Killjoy (1977)?","Ama Ata Aidoo","Ayi Kwei Armah","Efua Sutherland","Buchi Emecheta"],
+      [5,"Which Ghanaian painter is known for finger-painted portraits?","Amoako Boafo","El Anatsui","Ibrahim Mahama","Kwame Akoto-Bamfo"],
+      [5,"Which American artist is known for cut black-paper silhouettes about slavery?","Kara Walker","Lorna Simpson","Carrie Mae Weems","Faith Ringgold"],
+      [5,"Who sculpted The Ecstasy of Saint Teresa?","Gian Lorenzo Bernini","Michelangelo","Antonio Canova","Donatello"],
+      [5,"Leonardo's soft, smoky blending without hard outlines is called what?","Sfumato","Pointillism","Chiaroscuro","Impasto"]
     ]
   };
 
@@ -862,27 +1251,61 @@ button{font:inherit;color:inherit}
   const mod = (n, m) => ((n % m) + m) % m;
   const money = n => (n < 0 ? '−$' : '$') + Math.abs(n).toLocaleString();
 
-  // Questions you've already seen are remembered on this device (across games)
-  // and skipped until every question that fits has been used.
+  // ---------- Players and question memory ----------
+  // Everyone on this device gets their own question history and best scores.
+  // Questions you've seen are skipped. Once every question that fits has been seen,
+  // the ones you saw longest ago come back first, so repeats are as rare as possible.
   const ALL_CATS = Object.keys(Q);
+  const TOTAL_Q = ALL_CATS.reduce((n, c) => n + Q[c].length, 0);
   const hash = s => { let h = 5381; for(let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
-  let seen = store.get('kosmic.seen', {});
-  if(!seen || typeof seen !== 'object') seen = {};
+  const ALL_HASHES = new Set(ALL_CATS.flatMap(c => Q[c].map(q => hash(q[1]))));
+  const uid = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  let players = store.get('kosmic.players', null);
+  if(!players || !Array.isArray(players.list) || !players.list.length){
+    // First run, or coming from an older version: one player who keeps any earlier history and best scores
+    players = { list:[{ id:'p1', name:'' }], current:'p1' };
+    const oldSeen = store.get('kosmic.seen', null);
+    if(oldSeen && typeof oldSeen === 'object') store.set('kosmic.seen.p1', oldSeen);
+    store.set('kosmic.best.p1', { spin: store.get('triviaSpin.best', 0), board: store.get('triviaSpin.bestBoard', 0) });
+    store.set('kosmic.players', players);
+  }
+  if(!players.list.some(p => p.id === players.current)) players.current = players.list[0].id;
+  const savePlayers = () => store.set('kosmic.players', players);
+  const currentPlayer = () => players.list.find(p => p.id === players.current);
+  const playerLabel = p => (p.name || '').trim() || 'Player ' + (players.list.indexOf(p) + 1);
+  let seen = {};
+  const best = { spin:0, board:0 };
+  function loadPlayer(){
+    const s = store.get('kosmic.seen.' + players.current, {});
+    seen = s && typeof s === 'object' ? s : {};
+    const b = store.get('kosmic.best.' + players.current, {}) || {};
+    best.spin = +b.spin || 0; best.board = +b.board || 0;
+  }
+  const saveSeen = () => store.set('kosmic.seen.' + players.current, seen);
+  const saveBest = () => store.set('kosmic.best.' + players.current, { spin: best.spin, board: best.board });
+  function seenCount(id){
+    const s = id === players.current ? seen : (store.get('kosmic.seen.' + id, {}) || {});
+    let n = 0;
+    Object.values(s).forEach(list => { if(Array.isArray(list)) list.forEach(h => { if(ALL_HASHES.has(h)) n++; }); });
+    return n;
+  }
+  loadPlayer();
+
   const isSeen = (cat, qi) => (seen[cat] || []).includes(hash(Q[cat][qi][1]));
+  // The list keeps the order you saw questions in, oldest first
   function markSeen(cat, qi){
-    const list = seen[cat] || (seen[cat] = []), h = hash(Q[cat][qi][1]);
-    if(!list.includes(h)){ list.push(h); store.set('kosmic.seen', seen); }
+    const h = hash(Q[cat][qi][1]);
+    const list = (seen[cat] || []).filter(x => x !== h);
+    list.push(h); seen[cat] = list; saveSeen();
   }
   function freshPick(cat, filter){
     const pool = Q[cat].map((q, i) => i).filter(filter);
-    let fresh = pool.filter(i => !isSeen(cat, i));
-    if(!fresh.length){
-      const hs = new Set(pool.map(i => hash(Q[cat][i][1])));
-      seen[cat] = (seen[cat] || []).filter(h => !hs.has(h));
-      store.set('kosmic.seen', seen);
-      fresh = pool;
-    }
-    return pick(fresh);
+    const fresh = pool.filter(i => !isSeen(cat, i));
+    if(fresh.length) return pick(fresh);
+    const order = new Map((seen[cat] || []).map((h, i) => [h, i]));
+    const rank = i => order.has(hash(Q[cat][i][1])) ? order.get(hash(Q[cat][i][1])) : -1;
+    const oldest = pool.slice().sort((a, b) => rank(a) - rank(b));
+    return pick(oldest.slice(0, Math.max(1, Math.ceil(oldest.length / 3))));
   }
   const drawQuestion = (cat, lo, hi) => freshPick(cat, i => Q[cat][i][0] >= lo && Q[cat][i][0] <= hi);
   // Spin mode difficulty by level: L1 tiers 1-3, L2 2-4, L3 3-5, L4+ 4-5
@@ -897,7 +1320,6 @@ button{font:inherit;color:inherit}
   const colorOf = id => id === 'nova' ? NOVA_COLOR : SEAT_COLORS[Math.max(0, S.cats.indexOf(id))];
   const slices = () => { const c = S.cats; return [c[0], c[1], c[2], c[3], c[4], 'nova', c[5]]; };
   const dealCats = () => { S.cats = shuffle(ALL_CATS).slice(0, 6); };
-  const best = { spin: store.get('triviaSpin.best', 0), board: store.get('triviaSpin.bestBoard', 0) };
   let muted = store.get('triviaSpin.muted', false);
   const timeFor = lvl => Math.max(8, 22 - lvl * 2);
   const BOARD_TIME = 20, FINAL_TIME = 30;
@@ -936,7 +1358,7 @@ button{font:inherit;color:inherit}
   const el = {};
   ['hearts','midLbl','midVal','score','muteBtn','pips','wheelView','boardView','questionView','wheelWrap','wheel','bulbs','pointer','hubBtn','spinBtn','hint',
    'board','boardNote','finishBtn','card','catChip','timerNum','timerFill','qText','answers','feedback','nextBtn',
-   'startOverlay','modeSpin','modeBoard','bestSpinLine','bestBoardLine','pickOverlay','pickGrid',
+   'startOverlay','modeSpin','modeBoard','playerName','playersBtn','seenNote','playersOverlay','playerList','addPlayerForm','newPlayerName','playersDone','bestSpinLine','bestBoardLine','pickOverlay','pickGrid',
    'wagerOverlay','wagerStar','wagerKicker','wagerTitle','wagerText','wagerAmt','wagerRange','wagerMin','wagerMax','wagerBtn',
    'levelOverlay','levelTitle','levelText','rewardGrid','novaOverlay','novaBtn','stars','x2','powerbar','pickText','lvlCount','gearBtn','menu','endBtn','endTitle','endSub','homeBtn','homeTitle','homeSub',
    'overOverlay','overTitle','overNote','newBest','stat1Lbl','stat1','stat2Lbl','stat2','stat3Lbl','stat3','overBest','againBtn','switchBtn'
@@ -973,6 +1395,50 @@ button{font:inherit;color:inherit}
     el.muteBtn.setAttribute('aria-label', muted ? 'Turn sound on' : 'Turn sound off');
   }
   el.muteBtn.addEventListener('click', () => { muted = !muted; store.set('triviaSpin.muted', muted); renderMute(); if(!muted) sfx.tick(); });
+  function renderSeenNote(){
+    const p = currentPlayer(), n = seenCount(p.id);
+    el.seenNote.textContent = n
+      ? `${playerLabel(p)} has seen ${n.toLocaleString()} of ${TOTAL_Q.toLocaleString()} questions. Unseen ones come first.`
+      : `${TOTAL_Q.toLocaleString()} questions to play through. Unseen ones come first.`;
+  }
+  function renderWho(){
+    const p = currentPlayer();
+    el.playerName.value = p.name || '';
+    el.playerName.placeholder = 'Player ' + (players.list.indexOf(p) + 1);
+    renderSeenNote();
+  }
+  function renderPlayers(){
+    const many = players.list.length > 1;
+    el.playerList.innerHTML = players.list.map(p =>
+      `<div class="player-row"><button class="player-pick${p.id === players.current ? ' on' : ''}" type="button" data-id="${p.id}"><b></b><span>${seenCount(p.id).toLocaleString()} seen</span></button>` +
+      (many ? `<button class="player-del" type="button" data-del="${p.id}" aria-label="Remove player">×</button>` : '') + '</div>').join('');
+    el.playerList.querySelectorAll('.player-pick b').forEach((b, i) => { b.textContent = playerLabel(players.list[i]); });
+  }
+  function switchTo(id){ players.current = id; savePlayers(); loadPlayer(); renderPlayers(); renderWho(); renderBest(); }
+  el.playerName.addEventListener('input', () => { currentPlayer().name = el.playerName.value.slice(0, 16); savePlayers(); renderSeenNote(); });
+  el.playersBtn.addEventListener('click', () => { renderPlayers(); el.playersOverlay.hidden = false; el.playersDone.focus({preventScroll:true}); });
+  el.playerList.addEventListener('click', e => {
+    const pickBtn = e.target.closest('.player-pick'), del = e.target.closest('.player-del');
+    if(pickBtn) return switchTo(pickBtn.dataset.id);
+    if(!del) return;
+    // Removing a player wipes their history, so it takes a second tap
+    if(!del.classList.contains('armed')){ del.classList.add('armed'); del.textContent = 'Remove?'; return; }
+    const id = del.dataset.del;
+    players.list = players.list.filter(p => p.id !== id);
+    try{ localStorage.removeItem('kosmic.seen.' + id); localStorage.removeItem('kosmic.best.' + id); }catch(err){}
+    switchTo(players.current === id ? players.list[0].id : players.current);
+  });
+  el.addPlayerForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = el.newPlayerName.value.trim().slice(0, 16);
+    if(!name) return;
+    const id = uid();
+    players.list.push({ id, name });
+    el.newPlayerName.value = '';
+    switchTo(id);
+  });
+  el.playersDone.addEventListener('click', () => { el.playersOverlay.hidden = true; renderWho(); });
+
   function renderBest(){
     el.bestSpinLine.textContent = `Best: ${best.spin.toLocaleString()}`;
     el.bestBoardLine.textContent = `Best: ${money(best.board)}`;
@@ -1477,6 +1943,7 @@ button{font:inherit;color:inherit}
     el.overOverlay.hidden = true;
     S.phase = 'start'; S.started = false;
     showView('wheel'); renderBest();
+    renderWho();
     el.startOverlay.hidden = false;
   });
 
@@ -1544,7 +2011,7 @@ button{font:inherit;color:inherit}
     sfx.over();
     const key = S.mode;
     const isBest = S.score > best[key];
-    if(isBest){ best[key] = S.score; store.set(key === 'spin' ? 'triviaSpin.best' : 'triviaSpin.bestBoard', S.score); }
+    if(isBest){ best[key] = S.score; saveBest(); }
     el.newBest.hidden = !(isBest && S.score > 0);
     if(key === 'spin'){
       el.overTitle.textContent = 'Game over';
@@ -1584,6 +2051,7 @@ button{font:inherit;color:inherit}
     el.overOverlay.hidden = true;
     S.phase = 'start'; S.started = false;
     renderBest();
+    renderWho();
     el.startOverlay.hidden = false;
   });
   el.spinBtn.addEventListener('click', spin);
@@ -1613,7 +2081,7 @@ button{font:inherit;color:inherit}
 
   function start(data){
     data = data || {};
-    renderMute(); renderBest();
+    renderMute(); renderBest(); renderWho();
     if(Array.isArray(data.cats) && data.cats.length === 6 && data.cats.every(c => Q[c])) S.cats = data.cats;
     setRot(typeof data.rot === 'number' ? data.rot : 0);
     const resumeSpin = data.started && !data.over && data.mode !== 'board' && data.lives > 0;
