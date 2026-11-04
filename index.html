@@ -309,7 +309,7 @@ button{font:inherit;color:inherit}
         <span class="mode-icon grid" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
         <span class="mode-text">
           <span class="mode-title">Pick from the board</span>
-          <span class="mode-desc">Choose a category and a dollar amount. Wrong answers cost money. Find the Daily Double, then bet in the final.</span>
+          <span class="mode-desc">Choose a category and a dollar amount. Wrong answers cost money. Find the hidden Double Kos, then bet in the final.</span>
           <span class="mode-best" id="bestBoardLine">Best: $0</span>
         </span>
       </button>
@@ -328,8 +328,9 @@ button{font:inherit;color:inherit}
 
 <div class="overlay" id="wagerOverlay" role="dialog" aria-modal="true" aria-labelledby="wagerTitle" hidden>
   <div class="panel">
-    <p class="lbl" id="wagerKicker">Daily Double</p>
-    <h2 id="wagerTitle">Daily Double!</h2>
+    <span id="wagerStar" hidden><svg class="nova-badge" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5L14.53 8.52L21.99 8.76L16.09 13.33L18.17 20.49L12 16.3L5.83 20.49L7.91 13.33L2.01 8.76L9.47 8.52Z" fill="#ffb3d6" stroke="#14122b" stroke-width="1" stroke-linejoin="round"/></svg></span>
+    <p class="lbl" id="wagerKicker">Double Kos</p>
+    <h2 id="wagerTitle">Double Kos!</h2>
     <p class="sub" id="wagerText"></p>
     <output class="wager-amt" id="wagerAmt" for="wagerRange">$500</output>
     <input class="wager-range" id="wagerRange" type="range" min="0" max="1000" step="100" value="500" aria-label="Your bet">
@@ -935,7 +936,7 @@ button{font:inherit;color:inherit}
   ['hearts','midLbl','midVal','score','muteBtn','pips','wheelView','boardView','questionView','wheelWrap','wheel','bulbs','pointer','hubBtn','spinBtn','hint',
    'board','boardNote','finishBtn','card','catChip','timerNum','timerFill','qText','answers','feedback','nextBtn',
    'startOverlay','modeSpin','modeBoard','bestSpinLine','bestBoardLine','pickOverlay','pickGrid',
-   'wagerOverlay','wagerKicker','wagerTitle','wagerText','wagerAmt','wagerRange','wagerMin','wagerMax','wagerBtn',
+   'wagerOverlay','wagerStar','wagerKicker','wagerTitle','wagerText','wagerAmt','wagerRange','wagerMin','wagerMax','wagerBtn',
    'levelOverlay','levelTitle','levelText','rewardGrid','novaOverlay','novaBtn','stars','x2','powerbar','pickText','lvlCount','gearBtn','menu','endBtn','endTitle','endSub','homeBtn','homeTitle','homeSub',
    'overOverlay','overTitle','overNote','newBest','stat1Lbl','stat1','stat2Lbl','stat2','stat3Lbl','stat3','overBest','againBtn','switchBtn'
   ].forEach(id => { el[id] = $(id); });
@@ -1493,6 +1494,7 @@ button{font:inherit;color:inherit}
     S.phase = 'wager';
     S.pendingWager = { kind, col, row };
     const isFinal = kind === 'final';
+    el.wagerStar.hidden = isFinal;
     const min = isFinal ? 0 : 100;
     let max = isFinal ? roundDown(S.score) : roundDown(Math.max(S.score, 1000));
     if(max < min) max = min;
@@ -1507,7 +1509,7 @@ button{font:inherit;color:inherit}
     } else {
       const cat = CATS[S.board.cols[col].cat].name;
       el.wagerKicker.textContent = cat;
-      el.wagerTitle.textContent = 'Daily Double!';
+      el.wagerTitle.textContent = 'Double Kos!';
       el.wagerText.textContent = S.score > 1000
         ? `Bet anything up to your full ${money(S.score)}.`
         : 'Bet anything up to $1,000.';
@@ -1531,7 +1533,7 @@ button{font:inherit;color:inherit}
       showQuestion(f.cat, f.qi, FINAL_TIME, `Final · ${money(w)}`, { value: w, isFinal: true });
     } else {
       const c = S.board.cols[p.col], t = c.tiles[p.row];
-      showQuestion(c.cat, t.qi, BOARD_TIME, `Daily Double · ${money(w)}`, { value: w, col: p.col, row: p.row });
+      showQuestion(c.cat, t.qi, BOARD_TIME, `★ Double Kos · ${money(w)}`, { value: w, col: p.col, row: p.row });
     }
   });
 
