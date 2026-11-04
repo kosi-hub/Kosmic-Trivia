@@ -15,6 +15,7 @@
   --ink:#fff6e5;
   --muted:#a6b3d6;
   --gold:#ffc93c;
+  --kos:#ffb3d6;
   --line:rgba(255,255,255,.12);
   --card:#fffaf0;
   --card-ink:#14122b;
@@ -43,7 +44,7 @@ button{font:inherit;color:inherit}
 .app{height:100%;max-width:560px;margin:0 auto;padding:12px 16px 16px;display:flex;flex-direction:column;gap:12px}
 
 /* Scoreboard */
-.hud{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:14px;min-height:64px;padding:10px 12px 10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:16px}
+.hud{position:relative;display:grid;grid-template-columns:auto 1fr auto auto auto;align-items:center;gap:10px;min-height:64px;padding:10px 12px 10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:16px}
 .hearts{display:flex;gap:3px}
 .heart{width:26px;height:26px;display:block}
 .heart path{fill:#ff4f6d;stroke:#ff4f6d;stroke-width:1.5}
@@ -58,7 +59,7 @@ button{font:inherit;color:inherit}
 .val.neg{color:#ff8a82}
 .val.pop{animation:pop .4s ease}
 @keyframes pop{40%{transform:scale(1.25);color:var(--gold)}}
-.icon-btn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:transparent;display:grid;place-items:center;cursor:pointer}
+.icon-btn{width:36px;height:36px;border-radius:12px;border:1px solid var(--line);background:transparent;display:grid;place-items:center;cursor:pointer}
 .icon-btn svg{width:20px;height:20px}
 
 /* Views */
@@ -72,7 +73,7 @@ button{font:inherit;color:inherit}
 .pip.on{background:var(--gold);border-color:var(--gold);box-shadow:0 0 8px rgba(255,201,60,.7)}
 
 /* The wheel */
-.wheel-wrap{position:relative;width:min(100%, 52vh, 400px);aspect-ratio:1/1;flex:none}
+.wheel-wrap{position:relative;width:min(100%, 47vh, 400px);aspect-ratio:1/1;flex:none}
 #bulbs{position:absolute;inset:0;width:100%;height:100%}
 #wheel{position:absolute;left:7.5%;top:7.5%;width:85%;height:85%;will-change:transform}
 .hub{position:absolute;left:50%;top:50%;width:25%;height:25%;transform:translate(-50%,-50%);border-radius:50%;
@@ -169,15 +170,58 @@ button{font:inherit;color:inherit}
 .pick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
 .pick-btn{min-height:58px;border:0;border-radius:14px;background:var(--c);color:var(--card-ink);font-family:var(--display);font-size:.95rem;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.35)}
 .pick-btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
-.crown-badge{width:64px;height:52px}
 .wager-amt{font-family:var(--display);font-size:clamp(2.4rem, 13vw, 3.2rem);line-height:1;color:var(--gold);font-variant-numeric:tabular-nums}
 .wager-range{width:100%;height:32px;accent-color:var(--gold);cursor:pointer}
 .wager-ends{display:flex;justify-content:space-between;width:100%;margin-top:-10px;font-size:.85rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
 .wager-quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
 .btn-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px}
 
+/* Level meter and Kosmic Kos */
+.tracker{width:100%;display:grid;gap:9px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:16px;flex:none}
+.trow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tcount{font-family:var(--display);font-size:.95rem;font-variant-numeric:tabular-nums}
+.lvlbar{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.seg{height:12px;border-radius:6px;background:#26346a}
+.seg.on{background:linear-gradient(90deg,#ffe08a,var(--gold));box-shadow:0 0 10px rgba(255,201,60,.5)}
+.kos-wrap{display:flex;align-items:center;gap:8px}
+.stars{display:flex;gap:5px}
+.star{width:23px;height:23px;display:block;overflow:visible}
+.star path{fill:transparent;stroke:#5d5480;stroke-width:1.5;stroke-linejoin:round}
+.star.on path{fill:var(--kos);stroke:var(--kos)}
+.star.on{filter:drop-shadow(0 0 5px rgba(255,179,214,.85))}
+.star.new{animation:hit .7s ease}
+.x2{font-family:var(--display);font-size:.8rem;color:#14122b;background:var(--gold);border-radius:999px;padding:3px 8px}
+.powerbar{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding-top:6px}
+.pw{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 4px 8px;border-radius:14px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:700 .76rem/1.1 var(--body);cursor:pointer;text-align:center}
+.pw svg{width:22px;height:22px;color:var(--gold)}
+.pw .n{position:absolute;top:-7px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--gold);color:#14122b;font:400 .72rem/20px var(--display)}
+.pw:active{transform:translateY(2px)}
+.pw:disabled{opacity:.38;cursor:default;transform:none}
+.pw:disabled .n{background:#4a5a86;color:var(--ink)}
+.pw.on{opacity:1;border-color:var(--gold);box-shadow:inset 0 0 0 2px var(--gold)}
+.ans.gone{visibility:hidden}
+.reward-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.reward{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:16px;border:2px solid var(--line);background:#101a38;color:var(--ink);cursor:pointer;text-align:center}
+.reward:hover{border-color:rgba(255,201,60,.6)}
+.reward:active{transform:translateY(2px)}
+.reward svg{width:30px;height:30px;color:var(--gold)}
+.reward b{font-family:var(--display);font-weight:400;font-size:.95rem}
+.reward span{font-size:.85rem;line-height:1.25;color:var(--muted)}
+.reward em{font-style:normal;font-size:.75rem;font-weight:700;color:var(--gold)}
+.pick-btn:disabled{opacity:.45;cursor:default;transform:none}
+.nova-badge{width:68px;height:68px;filter:drop-shadow(0 0 14px rgba(255,179,214,.75))}
+.menu{position:absolute;right:6px;top:calc(100% + 8px);z-index:20;width:min(250px, calc(100vw - 40px));display:grid;gap:6px;padding:8px;
+  background:#1f2c58;border:1px solid var(--line);border-radius:16px;box-shadow:0 16px 40px rgba(0,0,0,.5)}
+.menu-item{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;padding:11px 12px;border:0;border-radius:11px;background:transparent;text-align:left;cursor:pointer}
+.menu-item:hover,.menu-item:focus-visible{background:rgba(255,255,255,.07)}
+.menu-item b{font-family:var(--display);font-weight:400;font-size:1rem}
+.menu-item span{font-size:.88rem;color:var(--muted)}
+.menu-item.armed{background:rgba(224,68,60,.18)}
+.menu-item.armed b{color:#ff8a82}
+.menu-item:disabled{opacity:.4;cursor:default}
+
 @media (max-height:620px){
-  .wheel-wrap{width:min(100%, 46vh, 400px)}
+  .wheel-wrap{width:min(100%, 40vh, 400px)}
   .big-btn{padding:11px 36px;font-size:1.25rem}
 }
 @media (prefers-reduced-motion:reduce){
@@ -192,16 +236,24 @@ button{font:inherit;color:inherit}
     <div class="stat center"><span class="lbl" id="midLbl">Level</span><span class="val" id="midVal">1</span></div>
     <div class="stat right"><span class="lbl">Score</span><span class="val" id="score">0</span></div>
     <button class="icon-btn" id="muteBtn" type="button" aria-label="Turn sound off"></button>
+    <button class="icon-btn" id="gearBtn" type="button" aria-label="Game menu" aria-haspopup="true" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+    <div class="menu" id="menu" role="menu" hidden>
+      <button class="menu-item" id="endBtn" type="button" role="menuitem"><b id="endTitle">End game</b><span id="endSub">See your results</span></button>
+      <button class="menu-item" id="homeBtn" type="button" role="menuitem"><b id="homeTitle">Main menu</b><span id="homeSub">Leave this game and choose a mode</span></button>
+    </div>
   </header>
 
   <section class="view" id="wheelView" aria-label="Wheel">
-    <div class="progress">
-      <span class="lbl">Next level</span>
-      <div class="pips" id="pips" role="img" aria-label="0 of 5 correct this level"></div>
+    <div class="tracker">
+      <div class="trow"><span class="lbl">Next level</span><span class="tcount" id="lvlCount">0 / 5</span></div>
+      <div class="lvlbar" id="pips" role="img" aria-label="0 of 5 correct this level"></div>
+      <div class="trow"><span class="lbl">Kosmic Kos</span><span class="kos-wrap"><span class="stars" id="stars" role="img" aria-label="0 of 5 Kosmic Kos"></span><span class="x2" id="x2" hidden>×2</span></span></div>
     </div>
     <div class="wheel-wrap" id="wheelWrap">
       <canvas id="bulbs" aria-hidden="true"></canvas>
-      <canvas id="wheel" role="img" aria-label="Category wheel: Science, Sports, Geography, History, Pop Culture, Crown, Art and Books"></canvas>
+      <canvas id="wheel" role="img" aria-label="Category wheel: Science, Sports, Geography, History, Pop Culture, Kosmic Kos, Art and Books"></canvas>
       <svg class="pointer" id="pointer" viewBox="0 0 40 46" aria-hidden="true">
         <path d="M20 44 L4 10 A16 16 0 0 1 36 10 Z" fill="#ffc93c" stroke="#14122b" stroke-width="3" stroke-linejoin="round"/>
         <circle cx="20" cy="13" r="5" fill="#14122b"/>
@@ -216,7 +268,7 @@ button{font:inherit;color:inherit}
     <div class="board" id="board"></div>
     <div class="board-foot">
       <span class="lbl" id="boardNote">Pick a category and an amount</span>
-      <button class="ghost-btn" id="finishBtn" type="button">Skip to final</button>
+      <button class="big-btn" id="finishBtn" type="button" hidden>Play the final round</button>
     </div>
   </section>
 
@@ -230,6 +282,7 @@ button{font:inherit;color:inherit}
       <h2 class="q" id="qText" tabindex="-1"></h2>
       <div class="answers" id="answers"></div>
     </div>
+    <div class="powerbar" id="powerbar" aria-label="Power-ups"></div>
     <p class="feedback" id="feedback" aria-live="polite"></p>
     <button class="big-btn" id="nextBtn" type="button" hidden>Spin again</button>
   </section>
@@ -248,7 +301,7 @@ button{font:inherit;color:inherit}
         <span class="mode-icon" aria-hidden="true"></span>
         <span class="mode-text">
           <span class="mode-title">Spin the wheel</span>
-          <span class="mode-desc">The wheel picks your category, or you pick on the crown. 3 hearts. Every level brings harder questions and a faster clock.</span>
+          <span class="mode-desc">Land on Kosmic Kos to win a pink star. Collect 5 to double your points. Level up to earn power-ups.</span>
           <span class="mode-best" id="bestSpinLine">Best: 0</span>
         </span>
       </button>
@@ -266,12 +319,9 @@ button{font:inherit;color:inherit}
 
 <div class="overlay" id="pickOverlay" role="dialog" aria-modal="true" aria-labelledby="pickTitle" hidden>
   <div class="panel">
-    <svg class="crown-badge" viewBox="0 0 64 52" aria-hidden="true">
-      <path d="M6 44 L6 12 L20 28 L32 6 L44 28 L58 12 L58 44 Z" fill="#ffc93c" stroke="#14122b" stroke-width="3" stroke-linejoin="round"/>
-      <rect x="6" y="40" width="52" height="8" rx="2" fill="#e0a514" stroke="#14122b" stroke-width="3"/>
-    </svg>
-    <h2 id="pickTitle">Crown!</h2>
-    <p class="sub">Pick any category for this question.</p>
+    <svg class="nova-badge" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5L14.53 8.52L21.99 8.76L16.09 13.33L18.17 20.49L12 16.3L5.83 20.49L7.91 13.33L2.01 8.76L9.47 8.52Z" fill="#ffb3d6" stroke="#14122b" stroke-width="1" stroke-linejoin="round"/></svg>
+    <h2 id="pickTitle">Kosmic Kos!</h2>
+    <p class="sub" id="pickText">Pick a category to go for a Kos.</p>
     <div class="pick-grid" id="pickGrid"></div>
   </div>
 </div>
@@ -298,7 +348,17 @@ button{font:inherit;color:inherit}
     <p class="lbl">Level up</p>
     <h2 id="levelTitle">Level 2</h2>
     <p id="levelText"></p>
-    <button class="big-btn" id="levelBtn" type="button">Keep going</button>
+    <span class="pick-label">Choose a power-up</span>
+    <div class="reward-grid" id="rewardGrid"></div>
+  </div>
+</div>
+
+<div class="overlay" id="novaOverlay" role="dialog" aria-modal="true" aria-labelledby="novaTitle" hidden>
+  <div class="panel">
+    <svg class="nova-badge" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5L14.53 8.52L21.99 8.76L16.09 13.33L18.17 20.49L12 16.3L5.83 20.49L7.91 13.33L2.01 8.76L9.47 8.52Z" fill="#ffb3d6" stroke="#14122b" stroke-width="1" stroke-linejoin="round"/></svg>
+    <h2 id="novaTitle">All 5 Kosmic Kos!</h2>
+    <p>Your constellation is complete. Every point you score for the rest of this game counts double.</p>
+    <button class="big-btn" id="novaBtn" type="button">Keep going</button>
   </div>
 </div>
 
@@ -336,10 +396,23 @@ button{font:inherit;color:inherit}
     sports:{ name:'Sports' },    film:{ name:'Movies & TV' },    horror:{ name:'Horror' },
     music:{ name:'Music' },      food:{ name:'Food & Drink' },   animals:{ name:'Animals' },
     words:{ name:'Words' },      myth:{ name:'Mythology' },      art:{ name:'Art & Books' },
-    crown:{ name:'Crown' }
+    nova:{ name:'Kosmic Kos' }
   };
   const SEAT_COLORS = ['#2fbf7a','#f5862a','#3b8fea','#ffcf33','#ec4f92','#e5513f'];
-  const CROWN_COLOR = '#7a4cd9';
+  const NOVA_COLOR = '#6a45d8';
+  const STAR_D = 'M12 1.5L14.53 8.52L21.99 8.76L16.09 13.33L18.17 20.49L12 16.3L5.83 20.49L7.91 13.33L2.01 8.76L9.47 8.52Z';
+  const POWERS = {
+    blackhole:{ name:'Black Hole', short:'Black Hole', desc:'Swallows two wrong answers.',
+      icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="10.5" ry="4" fill="none" stroke="currentColor" stroke-width="1.8" transform="rotate(-18 12 12)"/><circle cx="12" cy="12" r="4.6" fill="#0b1024" stroke="currentColor" stroke-width="1.8"/></svg>' },
+    time:{ name:'Time Warp', short:'+10 sec', desc:'Adds 10 seconds to the clock.',
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10M7 21h10M8 3c0 4.5 8 5 8 9s-8 4.5-8 9M16 3c0 4.5-8 5-8 9s8 4.5 8 9"/></svg>' },
+    shield:{ name:'Force Field', short:'Shield', desc:"A wrong answer won't cost you a heart.",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l8 3v6.2c0 5-3.4 8.6-8 9.8-4.6-1.2-8-4.8-8-9.8V5.5z"/></svg>' },
+    wormhole:{ name:'Wormhole', short:'Skip', desc:'Skip the question. No heart lost.',
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 10.5a1.5 1.5 0 0 1 1.5 1.5a3 3 0 0 1-3 3a4.5 4.5 0 0 1-4.5-4.5a6 6 0 0 1 6-6a7.5 7.5 0 0 1 7.5 7.5"/></svg>' }
+  };
+  const KOS_GOAL = 5, KOS_PINK = '#ffb3d6';
+  const freshPowers = () => ({ blackhole:1, time:0, shield:0, wormhole:0 });
 
   // [difficulty 1-5, question, correct answer, wrong, wrong, wrong]
   const Q = {
@@ -816,10 +889,11 @@ button{font:inherit;color:inherit}
   // ---------- State ----------
   const MAX_LIVES = 3, PER_LEVEL = 5;
   const S = { mode:'spin', started:false, phase:'start', lives:MAX_LIVES, level:1, score:0, correct:0, wrong:0, levelCorrect:0,
-              rot:0, leveled:false, heartBack:false, current:null, board:null, pendingWager:null,
-              cats: shuffle(ALL_CATS).slice(0, 6) };
-  const colorOf = id => id === 'crown' ? CROWN_COLOR : SEAT_COLORS[Math.max(0, S.cats.indexOf(id))];
-  const slices = () => { const c = S.cats; return [c[0], c[1], c[2], c[3], c[4], 'crown', c[5]]; };
+              rot:0, heartBack:false, current:null, board:null, pendingWager:null,
+              cats: shuffle(ALL_CATS).slice(0, 6),
+              kos:0, powers:freshPowers(), double:false, queue:[], usedPowers:{}, shieldOn:false, newStar:null };
+  const colorOf = id => id === 'nova' ? NOVA_COLOR : SEAT_COLORS[Math.max(0, S.cats.indexOf(id))];
+  const slices = () => { const c = S.cats; return [c[0], c[1], c[2], c[3], c[4], 'nova', c[5]]; };
   const dealCats = () => { S.cats = shuffle(ALL_CATS).slice(0, 6); };
   const best = { spin: store.get('triviaSpin.best', 0), board: store.get('triviaSpin.bestBoard', 0) };
   let muted = store.get('triviaSpin.muted', false);
@@ -862,7 +936,7 @@ button{font:inherit;color:inherit}
    'board','boardNote','finishBtn','card','catChip','timerNum','timerFill','qText','answers','feedback','nextBtn',
    'startOverlay','modeSpin','modeBoard','bestSpinLine','bestBoardLine','pickOverlay','pickGrid',
    'wagerOverlay','wagerKicker','wagerTitle','wagerText','wagerAmt','wagerRange','wagerMin','wagerMax','wagerBtn',
-   'levelOverlay','levelTitle','levelText','levelBtn',
+   'levelOverlay','levelTitle','levelText','rewardGrid','novaOverlay','novaBtn','stars','x2','powerbar','pickText','lvlCount','gearBtn','menu','endBtn','endTitle','endSub','homeBtn','homeTitle','homeSub',
    'overOverlay','overTitle','overNote','newBest','stat1Lbl','stat1','stat2Lbl','stat2','stat3Lbl','stat3','overBest','againBtn','switchBtn'
   ].forEach(id => { el[id] = $(id); });
 
@@ -877,8 +951,12 @@ button{font:inherit;color:inherit}
       el.hearts.setAttribute('aria-label', `${S.lives} ${S.lives === 1 ? 'life' : 'lives'} left`);
       el.midLbl.textContent = 'Level'; el.midVal.textContent = S.level;
       el.score.textContent = S.score.toLocaleString();
-      el.pips.innerHTML = Array.from({length:PER_LEVEL}, (_, i) => `<span class="pip${i < S.levelCorrect ? ' on' : ''}"></span>`).join('');
+      el.pips.innerHTML = Array.from({length:PER_LEVEL}, (_, i) => `<span class="seg${i < S.levelCorrect ? ' on' : ''}"></span>`).join('');
+      el.lvlCount.textContent = `${S.levelCorrect} / ${PER_LEVEL}`;
       el.pips.setAttribute('aria-label', `${S.levelCorrect} of ${PER_LEVEL} correct this level`);
+      el.stars.innerHTML = Array.from({length:KOS_GOAL}, (_, i) => `<svg class="star${i < S.kos ? ' on' : ''}${S.newStar && i === S.kos - 1 ? ' new' : ''}" viewBox="0 0 24 24" aria-hidden="true"><path d="${STAR_D}"/></svg>`).join('');
+      el.stars.setAttribute('aria-label', `${Math.min(S.kos, KOS_GOAL)} of ${KOS_GOAL} Kosmic Kos`);
+      el.x2.hidden = !S.double;
     } else {
       el.midLbl.textContent = 'Clues left'; el.midVal.textContent = cluesLeft();
       el.score.textContent = money(S.score);
@@ -909,10 +987,14 @@ button{font:inherit;color:inherit}
     if(c.width !== w){ c.width = w; c.height = w; return true; }
     return false;
   }
-  function crownPath(ctx, s){
+  function starPath(ctx, s){
+    const R = s / 2, r = R * .41;
     ctx.beginPath();
-    ctx.moveTo(-s/2, s*.32); ctx.lineTo(-s/2, -s*.28); ctx.lineTo(-s/4, 0); ctx.lineTo(0, -s*.42);
-    ctx.lineTo(s/4, 0); ctx.lineTo(s/2, -s*.28); ctx.lineTo(s/2, s*.32); ctx.closePath();
+    for(let k = 0; k < 10; k++){
+      const a = k * Math.PI / 5 - Math.PI / 2, rad = k % 2 === 0 ? R : r;
+      ctx.lineTo(Math.cos(a) * rad, Math.sin(a) * rad);
+    }
+    ctx.closePath();
   }
   function drawWheel(){
     if(el.wheel.getBoundingClientRect().width < 20) return; // hidden
@@ -937,9 +1019,9 @@ button{font:inherit;color:inherit}
     ctx.beginPath(); ctx.arc(c, c, r - ctx.lineWidth / 2, 0, Math.PI * 2); ctx.stroke();
     SLICES.forEach((id, i) => {
       const mid = (-90 + (i + .5) * SEG) * Math.PI / 180;
-      const isCrown = id === 'crown';
-      const label = CATS[id].name.toUpperCase();
-      const outer = isCrown ? r * .70 : r * .9;
+      const isNova = id === 'nova';
+      const label = isNova ? 'KOS' : CATS[id].name.toUpperCase();
+      const outer = isNova ? r * .72 : r * .9;
       const maxW = outer - hubR - r * .06;
       let fs = W * .05;
       ctx.save(); ctx.translate(c, c); ctx.rotate(mid);
@@ -947,11 +1029,12 @@ button{font:inherit;color:inherit}
       while(ctx.measureText(label).width > maxW && fs > 6){ fs -= .5; ctx.font = `${fs}px ${DISPLAY_FONT}`; }
       ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
       ctx.lineWidth = Math.max(2, fs * .28); ctx.strokeStyle = '#14122b'; ctx.strokeText(label, outer, fs * .04);
-      ctx.fillStyle = isCrown ? '#ffc93c' : '#fffaf0'; ctx.fillText(label, outer, fs * .04);
-      if(isCrown){
-        ctx.translate(r * .84, 0); ctx.rotate(Math.PI / 2);
-        crownPath(ctx, W * .075);
-        ctx.fillStyle = '#ffc93c'; ctx.fill(); ctx.lineWidth = Math.max(2, W * .007); ctx.strokeStyle = '#14122b'; ctx.stroke();
+      ctx.fillStyle = isNova ? KOS_PINK : '#fffaf0'; ctx.fillText(label, outer, fs * .04);
+      if(isNova){
+        ctx.translate(r * .845, 0);
+        ctx.rotate(Math.PI / 2);
+        starPath(ctx, W * .105);
+        ctx.fillStyle = KOS_PINK; ctx.fill(); ctx.lineWidth = Math.max(2, W * .007); ctx.strokeStyle = '#14122b'; ctx.stroke();
       }
       ctx.restore();
     });
@@ -1027,6 +1110,7 @@ button{font:inherit;color:inherit}
     S.current = Object.assign({ cat, qi, right, correctIndex: opts.indexOf(right) }, extra);
     markSeen(cat, qi);
     S.phase = 'question';
+    S.usedPowers = {}; S.shieldOn = false;
     el.card.style.setProperty('--cat', colorOf(cat));
     el.catChip.textContent = chipText;
     el.qText.textContent = q;
@@ -1039,6 +1123,49 @@ button{font:inherit;color:inherit}
     el.questionView.scrollTop = 0;
     el.qText.focus({preventScroll:true});
     startTimer(seconds);
+    renderPowers();
+  }
+
+  function renderPowers(){
+    const show = S.mode === 'spin';
+    el.powerbar.hidden = !show;
+    if(!show) return;
+    const live = S.phase === 'question';
+    el.powerbar.innerHTML = Object.entries(POWERS).map(([k, p]) => {
+      const n = S.powers[k] || 0, used = !!S.usedPowers[k];
+      const on = k === 'shield' && S.shieldOn;
+      const dis = !on && (!live || n < 1 || used);
+      return `<button class="pw${on ? ' on' : ''}" type="button" data-p="${k}"${dis ? ' disabled' : ''} aria-label="${p.name}: ${p.desc} You have ${n}.">${p.icon}<span>${p.short}</span><span class="n">${n}</span></button>`;
+    }).join('');
+  }
+  el.powerbar.addEventListener('click', e => {
+    const b = e.target.closest('.pw'); if(!b || b.disabled || S.phase !== 'question') return;
+    usePower(b.dataset.p);
+  });
+  function usePower(k){
+    if((S.powers[k] || 0) < 1 || S.usedPowers[k]) return;
+    S.powers[k]--; S.usedPowers[k] = true;
+    sfx.land();
+    if(k === 'blackhole'){
+      const btns = [...el.answers.querySelectorAll('.ans')];
+      shuffle(btns.map((b, i) => i).filter(i => i !== S.current.correctIndex)).slice(0, 2)
+        .forEach(i => { btns[i].classList.add('gone'); btns[i].disabled = true; });
+    } else if(k === 'time'){
+      deadline += 10000;
+      duration = Math.max(duration, deadline - performance.now());
+    } else if(k === 'shield'){
+      S.shieldOn = true;
+    } else if(k === 'wormhole'){
+      stopTimer();
+      S.phase = 'reveal'; S.queue = [];
+      el.answers.querySelectorAll('.ans').forEach(b => { b.disabled = true; b.classList.add('dim'); });
+      el.feedback.className = 'feedback good';
+      el.feedback.textContent = 'Through the wormhole. No heart lost.';
+      el.nextBtn.textContent = 'Spin again';
+      el.nextBtn.hidden = false;
+      el.nextBtn.focus({preventScroll:true});
+    }
+    renderPowers();
   }
 
   el.answers.addEventListener('click', e => {
@@ -1048,6 +1175,7 @@ button{font:inherit;color:inherit}
 
   function answer(i){
     if(S.phase !== 'question') return;
+    if(i >= 0){ const b = el.answers.querySelectorAll('.ans')[i]; if(!b || b.disabled) return; }
     stopTimer();
     S.phase = 'reveal';
     const btns = [...el.answers.querySelectorAll('.ans')];
@@ -1063,28 +1191,56 @@ button{font:inherit;color:inherit}
     };
 
     if(S.mode === 'spin'){
+      S.queue = [];
+      const mult = S.double ? 2 : 1;
       if(ok){
         const secsLeft = Math.ceil(Math.max(0, deadline - performance.now()) / 1000);
-        const pts = 100 * S.level + 10 * secsLeft;
-        S.score += pts; S.correct++; S.levelCorrect++;
-        sfx.right();
-        el.feedback.className = 'feedback good';
-        el.feedback.textContent = `Correct! +${pts}`;
+        let pts = (100 * S.level + 10 * secsLeft) * mult, title = 'Correct!', note = '';
+        S.correct++; S.levelCorrect++;
+        if(cur.nova){
+          pts += 500 * mult;
+          if(S.kos < KOS_GOAL){
+            S.kos++; S.newStar = true;
+            const gift = pick(Object.keys(POWERS));
+            S.powers[gift]++;
+            title = 'Kos won!';
+            note = `That's ${S.kos} of ${KOS_GOAL} Kosmic Kos, plus a free ${POWERS[gift].name}.`;
+            if(S.kos === KOS_GOAL && !S.double){ S.double = true; S.queue.push('constellation'); }
+          } else {
+            note = 'That includes a 500-point Kosmic Kos bonus.';
+          }
+        }
+        S.score += pts;
         if(S.levelCorrect >= PER_LEVEL){
-          S.level++; S.levelCorrect = 0; S.leveled = true;
+          S.level++; S.levelCorrect = 0;
           S.heartBack = S.lives < MAX_LIVES;
           if(S.heartBack) S.lives++;
+          S.queue.push('levelup');
         }
+        sfx.right();
+        el.feedback.className = 'feedback good';
+        el.feedback.innerHTML = `${title} +${pts.toLocaleString()}` + (note ? '<small></small>' : '');
+        if(note) el.feedback.querySelector('small').textContent = note;
         renderHud(); popScore();
       } else {
-        S.lives--; S.wrong++;
+        S.wrong++;
         sfx.wrong();
         el.feedback.className = 'feedback bad';
-        el.feedback.innerHTML = `${i === -1 ? "Time's up!" : 'Not quite.'}<small></small>`;
-        missLine();
-        renderHud(S.lives);
+        const lead = i === -1 ? "Time's up!" : 'Not quite.';
+        if(S.shieldOn){
+          el.feedback.innerHTML = `${lead} Your Force Field saved your heart.<small></small>`;
+          missLine(); renderHud();
+        } else {
+          S.lives--;
+          el.feedback.innerHTML = `${lead}<small></small>`;
+          missLine(); renderHud(S.lives);
+        }
       }
-      el.nextBtn.textContent = S.lives <= 0 ? 'See results' : S.leveled ? 'Level up!' : 'Spin again';
+      S.shieldOn = false;
+      renderPowers();
+      el.nextBtn.textContent = S.lives <= 0 ? 'See results'
+        : S.queue[0] === 'constellation' ? 'Claim your reward'
+        : S.queue[0] === 'levelup' ? 'Level up!' : 'Spin again';
     } else {
       const v = cur.value;
       if(!cur.isFinal) S.board.cols[cur.col].tiles[cur.row].used = true;
@@ -1110,11 +1266,7 @@ button{font:inherit;color:inherit}
 
   el.nextBtn.addEventListener('click', () => {
     if(S.phase !== 'reveal') return;
-    if(S.mode === 'spin'){
-      if(S.lives <= 0) return gameOver();
-      if(S.leveled) return showLevelUp();
-      return toWheel();
-    }
+    if(S.mode === 'spin') return continueFlow();
     if(S.current && S.current.isFinal) return gameOver();
     if(cluesLeft() === 0) return startFinal();
     toBoard();
@@ -1135,6 +1287,7 @@ button{font:inherit;color:inherit}
   function spin(){
     if(S.phase !== 'wheel') return;
     audio();
+    S.newStar = null;
     S.phase = 'spinning';
     el.spinBtn.disabled = true; el.hubBtn.disabled = true;
     el.hint.textContent = 'Spinning…'; el.hint.style.color = '';
@@ -1160,44 +1313,77 @@ button{font:inherit;color:inherit}
   }
 
   function landed(){
+    if(S.phase !== 'spinning') return;
+    S.phase = 'landed';
     const i = Math.floor(mod(-S.rot, 360) / SEG) % 7;
     const id = slices()[i];
     bulbMode = 'win';
     sfx.land();
-    el.hint.textContent = id === 'crown' ? 'Crown! You pick' : `${CATS[id].name}!`;
-    el.hint.style.color = id === 'crown' ? '#ffc93c' : colorOf(id);
+    el.hint.textContent = id === 'nova' ? 'Kosmic Kos! Go for a star' : `${CATS[id].name}!`;
+    el.hint.style.color = id === 'nova' ? KOS_PINK : colorOf(id);
     setTimeout(() => {
       bulbMode = 'idle';
-      if(id === 'crown') openPick(); else askSpin(id);
+      if(S.phase !== 'landed') return;
+      if(id === 'nova') openNova(); else askSpin(id);
     }, 900);
   }
 
-  function askSpin(cat){
-    const [lo, hi] = tierRange(S.level);
-    showQuestion(cat, drawQuestion(cat, lo, hi), timeFor(S.level), CATS[cat].name);
+  // Kosmic Kos questions are always hard (tiers 4-5) and get 5 extra seconds
+  function askSpin(cat, nova = false){
+    const [lo, hi] = nova ? [4, 5] : tierRange(S.level);
+    const secs = timeFor(S.level) + (nova ? 5 : 0);
+    showQuestion(cat, drawQuestion(cat, lo, hi), secs, nova ? `★ Kos · ${CATS[cat].name}` : CATS[cat].name, nova ? { nova: true } : {});
   }
 
-  function openPick(){
+  function openNova(){
     S.phase = 'pick';
+    el.pickText.textContent = S.kos >= KOS_GOAL
+      ? `You've collected all ${KOS_GOAL} Kos. Pick any category for a 500-point bonus question.`
+      : `Pick a category. Get this hard question right to win a pink Kos (${S.kos} of ${KOS_GOAL} so far), bonus points and a free power-up.`;
     el.pickGrid.innerHTML = S.cats.map(id => `<button class="pick-btn" type="button" data-cat="${id}" style="--c:${colorOf(id)}">${CATS[id].name}</button>`).join('');
     el.pickOverlay.hidden = false;
-    el.pickGrid.querySelector('button').focus({preventScroll:true});
+    const first = el.pickGrid.querySelector('button:not([disabled])');
+    if(first) first.focus({preventScroll:true});
   }
   el.pickGrid.addEventListener('click', e => {
-    const b = e.target.closest('.pick-btn'); if(!b) return;
+    const b = e.target.closest('.pick-btn'); if(!b || b.disabled) return;
     el.pickOverlay.hidden = true;
-    askSpin(b.dataset.cat);
+    askSpin(b.dataset.cat, true);
   });
 
+  // After a question: rewards first (constellation, level up), then back to the wheel
+  function continueFlow(){
+    if(S.lives <= 0) return gameOver();
+    const step = S.queue.shift();
+    if(step === 'constellation') return showConstellation();
+    if(step === 'levelup') return showLevelUp();
+    toWheel();
+  }
+
+  function showConstellation(){
+    S.phase = 'reward';
+    sfx.level();
+    el.novaOverlay.hidden = false;
+    el.novaBtn.focus({preventScroll:true});
+  }
+  el.novaBtn.addEventListener('click', () => { el.novaOverlay.hidden = true; continueFlow(); });
+
   function showLevelUp(){
-    S.leveled = false; S.phase = 'levelup';
+    S.phase = 'levelup';
     sfx.level();
     el.levelTitle.textContent = `Level ${S.level}`;
-    el.levelText.textContent = `Harder questions, ${timeFor(S.level)} seconds each, and more points per right answer.` + (S.heartBack ? ' You also won back a heart.' : '');
+    el.levelText.textContent = `Harder questions and ${timeFor(S.level)} seconds each.` + (S.heartBack ? ' You also won back a heart.' : '');
+    el.rewardGrid.innerHTML = Object.entries(POWERS).map(([k, p]) =>
+      `<button class="reward" type="button" data-p="${k}">${p.icon}<b>${p.name}</b><span>${p.desc}</span><em>You have ${S.powers[k] || 0}</em></button>`).join('');
     el.levelOverlay.hidden = false;
-    el.levelBtn.focus({preventScroll:true});
+    el.rewardGrid.querySelector('button').focus({preventScroll:true});
   }
-  el.levelBtn.addEventListener('click', () => { el.levelOverlay.hidden = true; toWheel(); });
+  el.rewardGrid.addEventListener('click', e => {
+    const b = e.target.closest('.reward'); if(!b || S.phase !== 'levelup') return;
+    S.powers[b.dataset.p] = (S.powers[b.dataset.p] || 0) + 1;
+    el.levelOverlay.hidden = true;
+    continueFlow();
+  });
 
   // ---------- Board mode ----------
   function buildBoard(){
@@ -1229,8 +1415,7 @@ button{font:inherit;color:inherit}
     el.board.innerHTML = html;
     const left = cluesLeft();
     el.boardNote.textContent = left === 30 ? 'Pick a category and an amount' : `${left} clue${left === 1 ? '' : 's'} left`;
-    el.finishBtn.textContent = left === 0 ? 'Play the final round' : 'Skip to final';
-    el.finishBtn.className = left === 0 ? 'big-btn' : 'ghost-btn';
+    el.finishBtn.hidden = left !== 0;
   }
 
   function toBoard(){
@@ -1249,6 +1434,49 @@ button{font:inherit;color:inherit}
   });
 
   el.finishBtn.addEventListener('click', () => { if(S.phase === 'board') startFinal(); });
+
+  // ---------- Settings menu: End game / Main menu ----------
+  const OVERLAYS = ['pickOverlay','levelOverlay','novaOverlay','wagerOverlay'];
+  function resetMenu(){
+    el.endBtn.classList.remove('armed'); el.homeBtn.classList.remove('armed');
+    const inFinal = S.mode === 'board' && ((S.current && S.current.isFinal) || (S.pendingWager && S.pendingWager.kind === 'final' && S.phase === 'wager'));
+    el.endTitle.textContent = 'End game';
+    el.endSub.textContent = S.mode === 'board' && !inFinal ? 'Skip to the final round' : 'See your results';
+    el.homeTitle.textContent = 'Main menu';
+    el.homeSub.textContent = 'Leave this game and choose a mode';
+    const live = S.started && S.phase !== 'over' && S.phase !== 'start';
+    el.endBtn.disabled = !live;
+  }
+  function openMenu(){ resetMenu(); el.menu.hidden = false; el.gearBtn.setAttribute('aria-expanded', 'true'); (el.endBtn.disabled ? el.homeBtn : el.endBtn).focus({preventScroll:true}); }
+  function closeMenu(){ el.menu.hidden = true; el.gearBtn.setAttribute('aria-expanded', 'false'); }
+  el.gearBtn.addEventListener('click', e => { e.stopPropagation(); el.menu.hidden ? openMenu() : closeMenu(); });
+  document.addEventListener('click', e => { if(!el.menu.hidden && !el.menu.contains(e.target)) closeMenu(); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape' && !el.menu.hidden){ closeMenu(); el.gearBtn.focus(); } });
+  // Each choice needs a second tap, so a stray tap can't end your game
+  function armed(btn, title, sub, titleEl, subEl){
+    if(btn.classList.contains('armed')) return true;
+    resetMenu(); btn.classList.add('armed'); titleEl.textContent = title; subEl.textContent = sub;
+    return false;
+  }
+  function clearPlay(){ stopTimer(); OVERLAYS.forEach(k => { el[k].hidden = true; }); S.queue = []; }
+  el.endBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    if(!armed(el.endBtn, 'Tap again to end', 'Your current game stops here', el.endTitle, el.endSub)) return;
+    closeMenu(); clearPlay();
+    const inFinal = (S.current && S.current.isFinal) || (S.pendingWager && S.pendingWager.kind === 'final' && S.phase === 'wager');
+    if(S.mode === 'board' && !inFinal) return startFinal();
+    gameOver();
+  });
+  el.homeBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    const live = S.started && S.phase !== 'over' && S.phase !== 'start';
+    if(live && !armed(el.homeBtn, 'Tap again to leave', 'Your current game will be lost', el.homeTitle, el.homeSub)) return;
+    closeMenu(); clearPlay();
+    el.overOverlay.hidden = true;
+    S.phase = 'start'; S.started = false;
+    showView('wheel'); renderBest();
+    el.startOverlay.hidden = false;
+  });
 
   function startFinal(){
     if(S.score <= 0) return gameOver({ noFinal: true });
@@ -1338,7 +1566,8 @@ button{font:inherit;color:inherit}
 
   function startMode(mode){
     Object.assign(S, { mode, started:true, lives:MAX_LIVES, level:1, score:0, correct:0, wrong:0, levelCorrect:0,
-                       leveled:false, heartBack:false, current:null, board:null, pendingWager:null });
+                       heartBack:false, current:null, board:null, pendingWager:null,
+                       kos:0, powers:freshPowers(), double:false, queue:[], usedPowers:{}, shieldOn:false, newStar:null });
     dealCats();
     el.startOverlay.hidden = true; el.overOverlay.hidden = true;
     audio();
@@ -1376,7 +1605,7 @@ button{font:inherit;color:inherit}
   const hot = window.claude && window.claude.hot;
   try{
     if(hot && hot.snapshot) hot.snapshot(() => ({ mode:S.mode, started:S.started, lives:S.lives, level:S.level, score:S.score, correct:S.correct, wrong:S.wrong,
-      levelCorrect:S.levelCorrect, rot:mod(S.rot, 360), board:S.board, cats:S.cats, over:S.phase === 'over' }));
+      levelCorrect:S.levelCorrect, rot:mod(S.rot, 360), board:S.board, cats:S.cats, kos:S.kos, powers:S.powers, double:S.double, over:S.phase === 'over' }));
   }catch(e){}
 
   function start(data){
@@ -1389,6 +1618,9 @@ button{font:inherit;color:inherit}
     if(resumeSpin || resumeBoard){
       Object.assign(S, { mode:data.mode || 'spin', started:true, lives:data.lives || MAX_LIVES, level:data.level || 1, score:data.score || 0,
         correct:data.correct || 0, wrong:data.wrong || 0, levelCorrect:data.levelCorrect || 0, board:data.board || null });
+      if(typeof data.kos === 'number') S.kos = Math.max(0, Math.min(KOS_GOAL, data.kos));
+      if(data.powers && typeof data.powers === 'object') S.powers = Object.assign(freshPowers(), data.powers);
+      S.double = !!data.double;
       el.startOverlay.hidden = true;
       if(resumeBoard) toBoard(); else toWheel();
     } else {
