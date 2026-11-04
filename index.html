@@ -191,23 +191,24 @@ button{font:inherit;color:inherit}
 .star.on{filter:drop-shadow(0 0 5px rgba(255,179,214,.85))}
 .star.new{animation:hit .7s ease}
 .x2{font-family:var(--display);font-size:.8rem;color:#14122b;background:var(--gold);border-radius:999px;padding:3px 8px}
-.powerbar{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding-top:6px}
-.pw{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 4px 8px;border-radius:14px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:700 .76rem/1.1 var(--body);cursor:pointer;text-align:center}
-.pw svg{width:22px;height:22px;color:var(--gold)}
-.pw .n{position:absolute;top:-7px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--gold);color:#14122b;font:400 .72rem/20px var(--display)}
+.powerbar{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding-top:10px}
+.pw{--pc:var(--gold);position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px 9px;border-radius:14px;cursor:pointer;text-align:center;font:700 .76rem/1.1 var(--body);color:var(--ink);background:var(--panel);background:color-mix(in srgb, var(--pc) 16%, var(--panel));border:1px solid color-mix(in srgb, var(--pc) 50%, transparent)}
+.pw svg{width:28px;height:28px;color:var(--pc);filter:drop-shadow(0 0 6px color-mix(in srgb, var(--pc) 45%, transparent))}
+.pw > span:not(.n){color:color-mix(in srgb, var(--pc) 40%, var(--ink))}
+.pw .n{position:absolute;top:-7px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--pc);color:#14122b;font:400 .72rem/20px var(--display)}
 .pw:active{transform:translateY(2px)}
-.pw:disabled{opacity:.38;cursor:default;transform:none}
+.pw:disabled{opacity:.42;cursor:default;transform:none;filter:saturate(.55)}
 .pw:disabled .n{background:#4a5a86;color:var(--ink)}
-.pw.on{opacity:1;border-color:var(--gold);box-shadow:inset 0 0 0 2px var(--gold)}
+.pw.on{opacity:1;filter:none;border-color:var(--pc);box-shadow:inset 0 0 0 2px var(--pc), 0 0 16px color-mix(in srgb, var(--pc) 50%, transparent)}
 .ans.gone{visibility:hidden}
 .reward-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
-.reward{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:16px;border:2px solid var(--line);background:#101a38;color:var(--ink);cursor:pointer;text-align:center}
-.reward:hover{border-color:rgba(255,201,60,.6)}
+.reward{--pc:var(--gold);display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:16px;cursor:pointer;text-align:center;color:var(--ink);background:#101a38;background:color-mix(in srgb, var(--pc) 12%, #101a38);border:2px solid color-mix(in srgb, var(--pc) 40%, transparent)}
+.reward:hover{border-color:var(--pc)}
 .reward:active{transform:translateY(2px)}
-.reward svg{width:30px;height:30px;color:var(--gold)}
+.reward svg{width:34px;height:34px;color:var(--pc);filter:drop-shadow(0 0 8px color-mix(in srgb, var(--pc) 45%, transparent))}
 .reward b{font-family:var(--display);font-weight:400;font-size:.95rem}
 .reward span{font-size:.85rem;line-height:1.25;color:var(--muted)}
-.reward em{font-style:normal;font-size:.75rem;font-weight:700;color:var(--gold)}
+.reward em{font-style:normal;font-size:.75rem;font-weight:700;color:var(--pc)}
 .pick-btn:disabled{opacity:.45;cursor:default;transform:none}
 .nova-badge{width:68px;height:68px;filter:drop-shadow(0 0 14px rgba(255,179,214,.75))}
 .menu{position:absolute;right:6px;top:calc(100% + 8px);z-index:20;width:min(250px, calc(100vw - 40px));display:grid;gap:6px;padding:8px;
@@ -403,14 +404,14 @@ button{font:inherit;color:inherit}
   const NOVA_COLOR = '#6a45d8';
   const STAR_D = 'M12 1.5L14.53 8.52L21.99 8.76L16.09 13.33L18.17 20.49L12 16.3L5.83 20.49L7.91 13.33L2.01 8.76L9.47 8.52Z';
   const POWERS = {
-    blackhole:{ name:'Black Hole', short:'Black Hole', desc:'Swallows two wrong answers.',
-      icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="10.5" ry="4" fill="none" stroke="currentColor" stroke-width="1.8" transform="rotate(-18 12 12)"/><circle cx="12" cy="12" r="4.6" fill="#0b1024" stroke="currentColor" stroke-width="1.8"/></svg>' },
-    time:{ name:'Time Warp', short:'+10 sec', desc:'Adds 10 seconds to the clock.',
-      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10M7 21h10M8 3c0 4.5 8 5 8 9s-8 4.5-8 9M16 3c0 4.5-8 5-8 9s8 4.5 8 9"/></svg>' },
-    shield:{ name:'Force Field', short:'Shield', desc:"A wrong answer won't cost you a heart.",
-      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l8 3v6.2c0 5-3.4 8.6-8 9.8-4.6-1.2-8-4.8-8-9.8V5.5z"/></svg>' },
-    wormhole:{ name:'Wormhole', short:'Skip', desc:'Skip the question. No heart lost.',
-      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 10.5a1.5 1.5 0 0 1 1.5 1.5a3 3 0 0 1-3 3a4.5 4.5 0 0 1-4.5-4.5a6 6 0 0 1 6-6a7.5 7.5 0 0 1 7.5 7.5"/></svg>' }
+    blackhole:{ name:'Black Hole', short:'Black Hole', color:'#b49bff', desc:'Swallows two wrong answers.',
+      icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="currentColor" opacity=".16"/><ellipse cx="12" cy="12" rx="11" ry="3.6" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(-20 12 12)"/><circle cx="12" cy="12" r="5" fill="#070a18" stroke="currentColor" stroke-width="1.6"/></svg>' },
+    time:{ name:'Time Warp', short:'+10 sec', color:'#4dd8ff', desc:'Adds 10 seconds to the clock.',
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="8" fill="currentColor" fill-opacity=".22"/><path d="M9.5 2.5h5M12 2.5v3M18.5 6.5l1.5-1.5M12 9.5v4l2.8 1.8"/></svg>' },
+    shield:{ name:'Force Field', short:'Shield', color:'#5ee0a2', desc:"A wrong answer won't cost you a heart.",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l8 3v6.2c0 5-3.4 8.6-8 9.8-4.6-1.2-8-4.8-8-9.8V5.5z" fill="currentColor" fill-opacity=".22"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>' },
+    wormhole:{ name:'Wormhole', short:'Skip', color:'#ff9a5c', desc:'Skip the question. No heart lost.',
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10.5" stroke-width="1.4" stroke-dasharray="2.2 2.6" opacity=".7"/><path d="M12 10.5a1.5 1.5 0 0 1 1.5 1.5a3 3 0 0 1-3 3a4.5 4.5 0 0 1-4.5-4.5a6 6 0 0 1 6-6a7.5 7.5 0 0 1 7.5 7.5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>' }
   };
   const KOS_GOAL = 5, KOS_PINK = '#ffb3d6';
   const freshPowers = () => ({ blackhole:1, time:0, shield:0, wormhole:0 });
@@ -1136,7 +1137,7 @@ button{font:inherit;color:inherit}
       const n = S.powers[k] || 0, used = !!S.usedPowers[k];
       const on = k === 'shield' && S.shieldOn;
       const dis = !on && (!live || n < 1 || used);
-      return `<button class="pw${on ? ' on' : ''}" type="button" data-p="${k}"${dis ? ' disabled' : ''} aria-label="${p.name}: ${p.desc} You have ${n}.">${p.icon}<span>${p.short}</span><span class="n">${n}</span></button>`;
+      return `<button class="pw${on ? ' on' : ''}" style="--pc:${p.color}" type="button" data-p="${k}"${dis ? ' disabled' : ''} aria-label="${p.name}: ${p.desc} You have ${n}.">${p.icon}<span>${p.short}</span><span class="n">${n}</span></button>`;
     }).join('');
   }
   el.powerbar.addEventListener('click', e => {
@@ -1375,7 +1376,7 @@ button{font:inherit;color:inherit}
     el.levelTitle.textContent = `Level ${S.level}`;
     el.levelText.textContent = `Harder questions and ${timeFor(S.level)} seconds each.` + (S.heartBack ? ' You also won back a heart.' : '');
     el.rewardGrid.innerHTML = Object.entries(POWERS).map(([k, p]) =>
-      `<button class="reward" type="button" data-p="${k}">${p.icon}<b>${p.name}</b><span>${p.desc}</span><em>You have ${S.powers[k] || 0}</em></button>`).join('');
+      `<button class="reward" style="--pc:${p.color}" type="button" data-p="${k}">${p.icon}<b>${p.name}</b><span>${p.desc}</span><em>You have ${S.powers[k] || 0}</em></button>`).join('');
     el.levelOverlay.hidden = false;
     el.rewardGrid.querySelector('button').focus({preventScroll:true});
   }
