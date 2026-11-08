@@ -51,7 +51,10 @@ button{font:inherit;color:inherit}
 .heart.lost path{fill:transparent;stroke:#4a5a86}
 .heart.hit{animation:hit .5s ease}
 @keyframes hit{0%{transform:scale(1)}30%{transform:scale(1.35) rotate(-10deg)}100%{transform:scale(1)}}
-.stat{display:flex;flex-direction:column;line-height:1;gap:3px}
+.stat{position:relative;display:flex;flex-direction:column;line-height:1;gap:3px}
+.stat.turn .val{text-decoration:underline;text-decoration-color:var(--gold);text-decoration-thickness:3px;text-underline-offset:7px}
+.stat.turn .lbl{color:var(--gold)}
+.val.kos-val{color:var(--kos)}
 .stat.center{align-items:center}
 .stat.right{align-items:flex-end}
 .lbl{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
@@ -129,6 +132,12 @@ button{font:inherit;color:inherit}
 .ans.wrong{background:var(--bad);border-color:#a52b25;color:#fff;box-shadow:0 3px 0 #a52b25}
 .ans.right .key,.ans.wrong .key{background:rgba(255,255,255,.25);color:#fff}
 .ans.dim{opacity:.5}
+.ans.kos-pick{outline:3px dashed #c2459a;outline-offset:3px}
+.card.kos-turn .ans{cursor:default}
+.feedback.kos{color:var(--kos)}
+.tile.picked{background:var(--kos);color:#14122b;text-shadow:none;animation:pop .5s ease}
+.kos-face{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:#6a45d8;box-shadow:0 0 0 3px var(--kos)}
+.kos-face svg{width:34px;height:34px}
 .feedback{margin:0;min-height:1.4em;font-family:var(--display);font-size:1.15rem;text-align:center}
 .feedback.good{color:#5fe0a2}
 .feedback.bad{color:#ff8a82}
@@ -249,8 +258,8 @@ button{font:inherit;color:inherit}
 <main class="app">
   <header class="hud">
     <div class="hearts" id="hearts" role="img" aria-label="3 lives left"></div>
-    <div class="stat center"><span class="lbl" id="midLbl">Level</span><span class="val" id="midVal">1</span></div>
-    <div class="stat right"><span class="lbl">Score</span><span class="val" id="score">0</span></div>
+    <div class="stat center" id="midStat"><span class="lbl" id="midLbl">Level</span><span class="val" id="midVal">1</span></div>
+    <div class="stat right" id="scoreStat"><span class="lbl" id="scoreLbl">Score</span><span class="val" id="score">0</span></div>
     <button class="icon-btn" id="muteBtn" type="button" aria-label="Turn sound off"></button>
     <button class="icon-btn" id="gearBtn" type="button" aria-label="Game menu" aria-haspopup="true" aria-expanded="false">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -349,6 +358,33 @@ button{font:inherit;color:inherit}
       <button class="ghost-btn" type="submit">Add</button>
     </form>
     <button class="big-btn" id="playersDone" type="button">Done</button>
+  </div>
+</div>
+
+<div class="overlay" id="vsOverlay" role="dialog" aria-modal="true" aria-labelledby="vsTitle" hidden>
+  <div class="panel">
+    <h2 id="vsTitle">Who are you playing?</h2>
+    <div class="modes">
+      <button class="mode-btn" id="vsSolo" type="button">
+        <span class="mode-icon grid" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        <span class="mode-text"><span class="mode-title">You vs You</span><span class="mode-desc">Play the board solo and beat your own best winnings.</span><span class="mode-best" id="bestSoloLine"></span></span>
+      </button>
+      <button class="mode-btn" id="vsKos" type="button">
+        <span class="kos-face" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 1.5L14.53 8.52L21.99 8.76L16.09 13.33L18.17 20.49L12 16.3L5.83 20.49L7.91 13.33L2.01 8.76L9.47 8.52Z" fill="#ffb3d6" stroke="#14122b" stroke-width="1" stroke-linejoin="round"/></svg></span>
+        <span class="mode-text"><span class="mode-title">You vs Kos</span><span class="mode-desc">Take turns picking clues against the computer. Whoever has the most money after the final wins.</span><span class="mode-best" id="vsRecordLine"></span></span>
+      </button>
+    </div>
+    <button class="ghost-btn" id="vsBack" type="button">Back</button>
+  </div>
+</div>
+
+<div class="overlay" id="kosBetOverlay" role="dialog" aria-modal="true" aria-labelledby="kosBetTitle" hidden>
+  <div class="panel">
+    <svg class="nova-badge" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5L14.53 8.52L21.99 8.76L16.09 13.33L18.17 20.49L12 16.3L5.83 20.49L7.91 13.33L2.01 8.76L9.47 8.52Z" fill="#ffb3d6" stroke="#14122b" stroke-width="1" stroke-linejoin="round"/></svg>
+    <p class="lbl" id="kosBetKicker">Double Kos</p>
+    <h2 id="kosBetTitle">Kos found a Double Kos!</h2>
+    <p id="kosBetText"></p>
+    <button class="big-btn" id="kosBetBtn" type="button">Watch Kos answer</button>
   </div>
 </div>
 
@@ -1607,7 +1643,8 @@ button{font:inherit;color:inherit}
   const S = { mode:'spin', started:false, phase:'start', lives:MAX_LIVES, level:1, score:0, correct:0, wrong:0, levelCorrect:0,
               rot:0, heartBack:false, current:null, board:null, pendingWager:null,
               cats: shuffle(ALL_CATS).slice(0, 6),
-              kos:0, powers:freshPowers(), double:false, queue:[], usedPowers:{}, shieldOn:false, newStar:null };
+              kos:0, powers:freshPowers(), double:false, queue:[], usedPowers:{}, shieldOn:false, newStar:null,
+              vs:false, kosScore:0, turn:'you', kosCorrect:0, kosWrong:0, final:null, pendingKos:null };
   const colorOf = id => id === 'nova' ? NOVA_COLOR : SEAT_COLORS[Math.max(0, S.cats.indexOf(id))];
   const slices = () => { const c = S.cats; return [c[0], c[1], c[2], c[3], c[4], 'nova', c[5]]; };
   const dealCats = () => { S.cats = shuffle(ALL_CATS).slice(0, 6); };
@@ -1652,6 +1689,7 @@ button{font:inherit;color:inherit}
    'startOverlay','modeSpin','modeBoard','playerName','playersBtn','seenNote','playersOverlay','playerList','addPlayerForm','newPlayerName','playersDone','bestSpinLine','bestBoardLine','pickOverlay','pickGrid',
    'wagerOverlay','wagerStar','wagerKicker','wagerTitle','wagerText','wagerAmt','wagerRange','wagerMin','wagerMax','wagerBtn',
    'levelOverlay','levelTitle','levelText','roundOverlay','roundText','roundBtn','rewardGrid','novaOverlay','novaBtn','stars','x2','powerbar','pickText','lvlCount','gearBtn','menu','endBtn','endTitle','endSub','homeBtn','homeTitle','homeSub',
+   'midStat','scoreStat','scoreLbl','vsOverlay','vsSolo','vsKos','vsBack','bestSoloLine','vsRecordLine','kosBetOverlay','kosBetKicker','kosBetText','kosBetBtn',
    'overOverlay','overTitle','overNote','newBest','stat1Lbl','stat1','stat2Lbl','stat2','stat3Lbl','stat3','overBest','againBtn','switchBtn'
   ].forEach(id => { el[id] = $(id); });
 
@@ -1672,10 +1710,19 @@ button{font:inherit;color:inherit}
       el.stars.innerHTML = Array.from({length:KOS_GOAL}, (_, i) => `<svg class="star${i < S.kos ? ' on' : ''}${S.newStar && i === S.kos - 1 ? ' new' : ''}" viewBox="0 0 24 24" aria-hidden="true"><path d="${STAR_D}"/></svg>`).join('');
       el.stars.setAttribute('aria-label', `${Math.min(S.kos, KOS_GOAL)} of ${KOS_GOAL} Kosmic Kos`);
       el.x2.hidden = !S.double;
+    } else if(S.vs){
+      el.midLbl.textContent = 'Kos'; el.midVal.textContent = money(S.kosScore);
+      el.scoreLbl.textContent = 'You'; el.score.textContent = money(S.score);
     } else {
       el.midLbl.textContent = 'Clues left'; el.midVal.textContent = cluesLeft();
       el.score.textContent = money(S.score);
     }
+    if(!(board && S.vs)) el.scoreLbl.textContent = 'Score';
+    const vsOn = board && S.vs;
+    el.midVal.classList.toggle('kos-val', vsOn);
+    el.midVal.classList.toggle('neg', vsOn && S.kosScore < 0);
+    el.midStat.classList.toggle('turn', vsOn && S.turn === 'kos');
+    el.scoreStat.classList.toggle('turn', vsOn && S.turn === 'you');
     el.score.classList.toggle('neg', S.score < 0);
   }
   function popScore(){ el.score.classList.remove('pop'); void el.score.offsetWidth; el.score.classList.add('pop'); }
@@ -1868,7 +1915,7 @@ button{font:inherit;color:inherit}
     const opts = shuffle([right, ...wrong]);
     S.current = Object.assign({ cat, qi, right, correctIndex: opts.indexOf(right) }, extra);
     markSeen(cat, qi);
-    S.phase = 'question';
+    S.phase = extra.kos ? 'kosq' : 'question';
     S.usedPowers = {}; S.shieldOn = false;
     el.card.style.setProperty('--cat', colorOf(cat));
     el.catChip.textContent = chipText;
@@ -1881,7 +1928,14 @@ button{font:inherit;color:inherit}
     showView('question');
     el.questionView.scrollTop = 0;
     el.qText.focus({preventScroll:true});
-    startTimer(seconds);
+    el.card.classList.toggle('kos-turn', !!extra.kos);
+    if(extra.kos){
+      // Kos is answering: no clock for you, and the answers can't be tapped
+      stopTimer();
+      el.timerNum.textContent = '…'; el.timerFill.style.transform = 'scaleX(1)'; el.card.classList.remove('hurry');
+      el.answers.querySelectorAll('.ans').forEach(b => { b.disabled = true; });
+      el.feedback.className = 'feedback kos'; el.feedback.textContent = 'Kos is thinking…';
+    } else startTimer(seconds);
     renderPowers();
   }
 
@@ -2016,10 +2070,10 @@ button{font:inherit;color:inherit}
         missLine();
       }
       renderHud(); popScore();
-      el.nextBtn.textContent = cur.isFinal ? 'See results'
-        : cluesLeft() > 0 ? 'Back to board'
-        : boardRound() === 2 ? 'Final round'
-        : S.score >= DOUBLE_MIN ? 'Double Kosmic round' : 'See results';
+      if(S.vs && cur.isFinal){
+        el.feedback.innerHTML += '<small class="kos-line">Now let\'s see what Kos did…</small>';
+      }
+      el.nextBtn.textContent = cur.isFinal ? (S.vs ? "See Kos's answer" : 'See results') : boardNextLabel(false);
     }
     el.nextBtn.hidden = false;
     el.nextBtn.focus({preventScroll:true});
@@ -2029,8 +2083,12 @@ button{font:inherit;color:inherit}
   el.nextBtn.addEventListener('click', () => {
     if(S.phase !== 'reveal') return;
     if(S.mode === 'spin') return continueFlow();
-    if(S.current && S.current.isFinal) return gameOver();
+    if(S.current && S.current.isFinal){
+      if(S.vs && !S.final.kosDone) return kosFinalReveal();
+      return gameOver();
+    }
     if(cluesLeft() === 0) return afterRound();
+    if(S.vs) return S.current && S.current.kos ? yourTurn() : kosTurn();
     toBoard();
   });
 
@@ -2174,13 +2232,21 @@ button{font:inherit;color:inherit}
   const boardRound = () => (S.board && S.board.round) || 1;
   // When a board is cleared: round 1 leads to Double Kosmic (if you're at -$500 or better), round 2 to the final
   function afterRound(){
-    if(boardRound() === 1) return S.score >= DOUBLE_MIN ? showDoubleIntro() : gameOver({ noDouble: true });
+    // Against Kos everyone plays Double Kosmic; solo, you need -$500 or better
+    if(boardRound() === 1) return (S.vs || S.score >= DOUBLE_MIN) ? showDoubleIntro() : gameOver({ noDouble: true });
     startFinal();
+  }
+  // What the button after a clue says on the board
+  function boardNextLabel(kosJustPlayed){
+    if(cluesLeft() > 0) return S.vs ? (kosJustPlayed ? 'Your turn' : "Kos's turn") : 'Back to board';
+    if(boardRound() === 2) return 'Final round';
+    return (S.vs || S.score >= DOUBLE_MIN) ? 'Double Kosmic round' : 'See results';
   }
   function showDoubleIntro(){
     S.phase = 'round';
     sfx.level();
-    el.roundText.textContent = `Six new categories, harder questions, and every price doubles, from $400 to $2,000. Two Double Kos are hidden on this board. You're on ${money(S.score)}.`;
+    el.roundText.textContent = `Six new categories, harder questions, and every price doubles, from $400 to $2,000. Two Double Kos are hidden on this board. ` +
+      (S.vs ? `You're on ${money(S.score)} and Kos is on ${money(S.kosScore)}. ${S.kosScore < S.score ? 'Kos is behind, so Kos picks first.' : 'You pick first.'}` : `You're on ${money(S.score)}.`);
     el.roundOverlay.hidden = false;
     el.roundBtn.focus({preventScroll:true});
   }
@@ -2200,11 +2266,13 @@ button{font:inherit;color:inherit}
     fitHeads();
     const left = cluesLeft();
     const r2 = boardRound() === 2;
-    el.boardNote.textContent = left === 30
-      ? (r2 ? 'Double Kosmic: every price is doubled' : 'Round 1: pick a category and an amount')
-      : `${r2 ? 'Double Kosmic' : 'Round 1'} · ${left} clue${left === 1 ? '' : 's'} left`;
-    el.finishBtn.hidden = left !== 0;
-    el.finishBtn.textContent = r2 ? 'Play the final round' : S.score >= DOUBLE_MIN ? 'Play Double Kosmic' : 'See results';
+    el.boardNote.textContent = S.vs
+      ? `${S.turn === 'you' ? 'Your pick' : 'Kos is picking…'} · ${r2 ? 'Double Kosmic' : 'Round 1'} · ${left} left`
+      : left === 30
+        ? (r2 ? 'Double Kosmic: every price is doubled' : 'Round 1: pick a category and an amount')
+        : `${r2 ? 'Double Kosmic' : 'Round 1'} · ${left} clue${left === 1 ? '' : 's'} left`;
+    el.finishBtn.hidden = left !== 0 || (S.vs && S.turn === 'kos');
+    el.finishBtn.textContent = r2 ? 'Play the final round' : (S.vs || S.score >= DOUBLE_MIN) ? 'Play Double Kosmic' : 'See results';
   }
 
   // Shrink any category name that's too wide for its column, so long words never get cut off
@@ -2239,11 +2307,133 @@ button{font:inherit;color:inherit}
     el.roundOverlay.hidden = true;
     S.cats = shuffle(ALL_CATS.filter(c => !S.cats.includes(c)));
     buildBoard(2);
+    if(S.vs && S.kosScore < S.score) return kosTurn();
+    S.turn = 'you';
     toBoard();
   });
 
+  // ---------- You vs Kos ----------
+  // Kos gets easy clues right almost every time and the hardest ones a bit over half the time.
+  const KOS_SKILL = [0.93, 0.86, 0.76, 0.66, 0.56];
+  let kosToken = 0;   // bumps when a game is left, so Kos's delayed moves are dropped
+  const later = (ms, fn) => { const t = kosToken; setTimeout(() => { if(t === kosToken) fn(); }, ms); };
+  const vsKey = () => 'kosmic.vsrec.' + players.current;
+  const getRecord = () => Object.assign({ w:0, l:0, t:0 }, store.get(vsKey(), {}) || {});
+  const recordText = r => `${r.w} win${r.w === 1 ? '' : 's'}, ${r.l} loss${r.l === 1 ? '' : 'es'}` + (r.t ? `, ${r.t} tie${r.t === 1 ? '' : 's'}` : '');
+
+  function yourTurn(){ S.turn = 'you'; toBoard(); }
+  function kosTurn(){
+    S.turn = 'kos'; S.phase = 'kospick';
+    showView('board'); renderBoard(); renderHud();
+    later(900 + Math.random() * 700, () => {
+      const open = [];
+      S.board.cols.forEach((c, col) => c.tiles.forEach((t, row) => { if(!t.used) open.push({ col, row }); }));
+      if(!open.length) return afterRound();
+      // Usually works down a category from the top, sometimes jumps around
+      let choice;
+      if(Math.random() < .6){
+        const col = pick([...new Set(open.map(o => o.col))]);
+        choice = open.filter(o => o.col === col).sort((a, b) => a.row - b.row)[0];
+      } else choice = pick(open);
+      const btn = el.board.querySelector(`.tile[data-col="${choice.col}"][data-row="${choice.row}"]`);
+      if(btn) btn.classList.add('picked');
+      sfx.tick();
+      later(750, () => {
+        const c = S.board.cols[choice.col], t = c.tiles[choice.row];
+        if(t.dd) return kosDoubleKos(choice.col, choice.row);
+        kosAsk(choice.col, choice.row, t.value, `Kos · ${CATS[c.cat].name} · ${money(t.value)}`);
+      });
+    });
+  }
+  function kosDoubleKos(col, row){
+    const max = roundDown(Math.max(S.kosScore, ROUNDS[boardRound()].ddMax));
+    const bet = Math.max(100, Math.min(max, roundDown(max * (0.35 + Math.random() * 0.4))));
+    S.phase = 'kosbet'; S.pendingKos = { col, row, bet };
+    sfx.dd();
+    el.kosBetKicker.textContent = CATS[S.board.cols[col].cat].name;
+    el.kosBetText.textContent = `Kos bets ${money(bet)}.`;
+    el.kosBetOverlay.hidden = false;
+    el.kosBetBtn.focus({preventScroll:true});
+  }
+  el.kosBetBtn.addEventListener('click', () => {
+    if(S.phase !== 'kosbet') return;
+    el.kosBetOverlay.hidden = true;
+    const p = S.pendingKos;
+    kosAsk(p.col, p.row, p.bet, `★ Kos · Double Kos · ${money(p.bet)}`);
+  });
+  function kosAsk(col, row, value, chip){
+    const c = S.board.cols[col];
+    showQuestion(c.cat, c.tiles[row].qi, 0, chip, { value, col, row, kos: true });
+    later(1500 + Math.random() * 1600, kosAnswer);
+  }
+  function kosGuess(){
+    const cur = S.current, ok = Math.random() < KOS_SKILL[Q[cur.cat][cur.qi][0] - 1];
+    return ok ? cur.correctIndex : pick([0, 1, 2, 3].filter(k => k !== cur.correctIndex));
+  }
+  // Kos answers a board clue (or the final, when you're sitting it out)
+  function kosAnswer(){
+    if(S.phase !== 'kosq') return;
+    const cur = S.current, i = kosGuess(), ok = i === cur.correctIndex;
+    S.phase = 'reveal';
+    const btns = [...el.answers.querySelectorAll('.ans')];
+    btns.forEach((b, k) => { b.disabled = true; b.classList.add(k === cur.correctIndex ? 'right' : k === i ? 'wrong' : 'dim'); });
+    btns[i].classList.add('kos-pick');
+    const v = cur.value;
+    if(!cur.isFinal) S.board.cols[cur.col].tiles[cur.row].used = true;
+    if(ok){ S.kosScore += v; S.kosCorrect++; sfx.land(); }
+    else { S.kosScore -= v; S.kosWrong++; sfx.tick(); }
+    el.feedback.className = 'feedback kos';
+    el.feedback.innerHTML = (cur.isFinal ? `Kos bet ${money(v)} and ` : 'Kos ') + (ok ? `got it! +${money(v)}` : `missed it. −${money(v)}`) + (ok ? '' : '<small></small>');
+    if(!ok) el.feedback.querySelector('small').textContent = `The answer was ${cur.right}.`;
+    if(cur.isFinal) S.final.kosDone = true;
+    renderHud(); popScore();
+    el.nextBtn.textContent = cur.isFinal ? 'See who won' : boardNextLabel(true);
+    el.nextBtn.hidden = false;
+    el.nextBtn.focus({preventScroll:true});
+    el.nextBtn.scrollIntoView({block:'nearest', behavior: reduced ? 'auto' : 'smooth'});
+  }
+  // Kos's final bet, chosen before anyone sees the question
+  function kosFinalBet(){
+    const k = S.kosScore, y = Math.max(0, S.score);
+    if(k <= 0) return 0;
+    if(k > 2 * y) return roundDown(Math.random() * Math.max(0, k - 2 * y - 100));   // can't be caught: bet small
+    if(k >= y) return Math.min(k, Math.ceil((2 * y - k + 100) / 100) * 100);         // leading: bet enough to stay ahead if right
+    return k;                                                                         // behind: all in
+  }
+  function startFinalVs(){
+    S.final = { kosBet: kosFinalBet(), youBet: 0, kosDone: false };
+    if(S.score > 0) return openWager('final');
+    // You have no money to bet, so you sit out and watch Kos
+    const f = S.board.final;
+    if(S.final.kosBet <= 0 && S.kosScore <= 0){ S.final.kosDone = true; return gameOver(); }
+    showQuestion(f.cat, f.qi, 0, `Final · Kos plays alone`, { value: S.final.kosBet, isFinal: true, kos: true });
+    el.feedback.textContent = "You need more than $0 to bet, so Kos plays the final alone. Kos is thinking…";
+    later(2200, kosAnswer);
+  }
+  // After you answer the final, Kos's answer and secret bet are revealed
+  function kosFinalReveal(){
+    const cur = S.current, bet = S.final.kosBet;
+    S.final.kosDone = true;
+    const small = document.createElement('small');
+    if(S.kosScore <= 0){
+      small.textContent = 'Kos had no money to bet, so Kos sat this one out.';
+    } else {
+      const i = kosGuess(), ok = i === cur.correctIndex;
+      el.answers.querySelectorAll('.ans')[i].classList.add('kos-pick');
+      S.kosScore += ok ? bet : -bet;
+      const said = el.answers.querySelectorAll('.ans .txt')[i].textContent;
+      small.textContent = `Kos answered "${said}" and bet ${money(bet)}. ` + (ok ? `Kos got it. +${money(bet)}` : `Kos missed. −${money(bet)}`);
+      ok ? sfx.land() : sfx.tick();
+    }
+    const old = el.feedback.querySelector('.kos-line'); if(old) old.remove();
+    small.className = 'kos-line'; el.feedback.appendChild(small);
+    renderHud(); popScore();
+    el.nextBtn.textContent = 'See who won';
+    el.nextBtn.focus({preventScroll:true});
+  }
+
   // ---------- Settings menu: End game / Main menu ----------
-  const OVERLAYS = ['pickOverlay','levelOverlay','novaOverlay','wagerOverlay','roundOverlay'];
+  const OVERLAYS = ['pickOverlay','levelOverlay','novaOverlay','wagerOverlay','roundOverlay','kosBetOverlay'];
   function resetMenu(){
     el.endBtn.classList.remove('armed'); el.homeBtn.classList.remove('armed');
     const inFinal = S.mode === 'board' && ((S.current && S.current.isFinal) || (S.pendingWager && S.pendingWager.kind === 'final' && S.phase === 'wager'));
@@ -2265,7 +2455,7 @@ button{font:inherit;color:inherit}
     resetMenu(); btn.classList.add('armed'); titleEl.textContent = title; subEl.textContent = sub;
     return false;
   }
-  function clearPlay(){ stopTimer(); spinToken++; bulbMode = 'idle'; OVERLAYS.forEach(k => { el[k].hidden = true; }); S.queue = []; }
+  function clearPlay(){ stopTimer(); spinToken++; kosToken++; bulbMode = 'idle'; OVERLAYS.forEach(k => { el[k].hidden = true; }); S.queue = []; }
   el.endBtn.addEventListener('click', e => {
     e.stopPropagation();
     if(!armed(el.endBtn, 'Tap again to end', 'Your current game stops here', el.endTitle, el.endSub)) return;
@@ -2287,7 +2477,7 @@ button{font:inherit;color:inherit}
   });
 
   function startFinal(){
-    if(S.score <= 0) return gameOver({ noFinal: true });
+    if(!S.vs && S.score <= 0) return gameOver({ noFinal: true });
     if(!S.board.final){
       // Final question: a hard one from any of the 12 categories, not one still sitting on the board
       const fcat = pick(ALL_CATS);
@@ -2295,6 +2485,7 @@ button{font:inherit;color:inherit}
       const onBoard = new Set(col ? col.tiles.map(t => t.qi) : []);
       S.board.final = { cat: fcat, qi: freshPick(fcat, i => Q[fcat][i][0] >= 4 && !onBoard.has(i)) };
     }
+    if(S.vs) return startFinalVs();
     openWager('final');
   }
 
@@ -2319,7 +2510,7 @@ button{font:inherit;color:inherit}
       const cat = CATS[S.board.final.cat].name;
       el.wagerKicker.textContent = 'Final round';
       el.wagerTitle.textContent = cat;
-      el.wagerText.textContent = `One last question about ${cat}. Bet up to everything you have. You get ${FINAL_TIME} seconds.`;
+      el.wagerText.textContent = `One last question about ${cat}. Bet up to everything you have. You get ${FINAL_TIME} seconds.` + (S.vs ? ' Kos is making a secret bet too.' : '');
       sfx.level();
     } else {
       const cat = CATS[S.board.cols[col].cat].name;
@@ -2345,6 +2536,7 @@ button{font:inherit;color:inherit}
     el.wagerOverlay.hidden = true;
     if(p.kind === 'final'){
       const f = S.board.final;
+      if(S.vs) S.final.youBet = w;
       showQuestion(f.cat, f.qi, FINAL_TIME, `Final · ${money(w)}`, { value: w, isFinal: true });
     } else {
       const c = S.board.cols[p.col], t = c.tiles[p.row];
@@ -2356,6 +2548,7 @@ button{font:inherit;color:inherit}
   function gameOver(opts = {}){
     S.phase = 'over';
     sfx.over();
+    if(S.mode === 'board' && S.vs) return gameOverVs();
     const key = S.mode;
     const isBest = S.score > best[key];
     if(isBest){ best[key] = S.score; saveBest(); }
@@ -2383,11 +2576,32 @@ button{font:inherit;color:inherit}
     el.againBtn.focus({preventScroll:true});
   }
 
+  function gameOverVs(){
+    const diff = S.score - S.kosScore, rec = getRecord();
+    if(diff > 0) rec.w++; else if(diff < 0) rec.l++; else rec.t++;
+    store.set(vsKey(), rec);
+    S.turn = 'you'; renderHud();
+    if(!el.boardView.hidden && S.board) renderBoard();
+    el.overTitle.textContent = diff > 0 ? 'You win!' : diff < 0 ? 'Kos wins' : "It's a tie";
+    el.overNote.hidden = false;
+    el.overNote.textContent = diff > 0 ? `You beat Kos by ${money(diff)}.` : diff < 0 ? `Kos beat you by ${money(-diff)}.` : 'Dead even.';
+    el.newBest.hidden = true;
+    el.stat1Lbl.textContent = 'You'; el.stat1.textContent = money(S.score);
+    el.stat2Lbl.textContent = 'Kos'; el.stat2.textContent = money(S.kosScore);
+    el.stat3Lbl.textContent = 'You got right'; el.stat3.textContent = S.correct;
+    el.overBest.textContent = `Your record vs Kos: ${recordText(rec)}`;
+    renderBest();
+    el.overOverlay.hidden = false;
+    el.againBtn.focus({preventScroll:true});
+  }
+
   function startMode(mode){
     spinToken++; stopTimer();
     Object.assign(S, { mode, started:true, lives:MAX_LIVES, level:1, score:0, correct:0, wrong:0, levelCorrect:0,
                        heartBack:false, current:null, board:null, pendingWager:null,
-                       kos:0, powers:freshPowers(), double:false, queue:[], usedPowers:{}, shieldOn:false, newStar:null });
+                       kos:0, powers:freshPowers(), double:false, queue:[], usedPowers:{}, shieldOn:false, newStar:null,
+                       kosScore:0, turn:'you', kosCorrect:0, kosWrong:0, final:null, pendingKos:null });
+    kosToken++;
     dealCats();
     el.startOverlay.hidden = true; el.overOverlay.hidden = true;
     audio();
@@ -2395,7 +2609,15 @@ button{font:inherit;color:inherit}
     else { buildBoard(1); toBoard(); }
   }
   el.modeSpin.addEventListener('click', () => startMode('spin'));
-  el.modeBoard.addEventListener('click', () => startMode('board'));
+  el.modeBoard.addEventListener('click', () => {
+    el.bestSoloLine.textContent = `Best: ${money(best.board)}`;
+    el.vsRecordLine.textContent = `Your record: ${recordText(getRecord())}`;
+    el.vsOverlay.hidden = false;
+    el.vsKos.focus({preventScroll:true});
+  });
+  el.vsSolo.addEventListener('click', () => { el.vsOverlay.hidden = true; S.vs = false; startMode('board'); });
+  el.vsKos.addEventListener('click', () => { el.vsOverlay.hidden = true; S.vs = true; startMode('board'); });
+  el.vsBack.addEventListener('click', () => { el.vsOverlay.hidden = true; });
   el.againBtn.addEventListener('click', () => startMode(S.mode));
   el.switchBtn.addEventListener('click', () => {
     el.overOverlay.hidden = true;
@@ -2426,7 +2648,7 @@ button{font:inherit;color:inherit}
   const hot = window.claude && window.claude.hot;
   try{
     if(hot && hot.snapshot) hot.snapshot(() => ({ mode:S.mode, started:S.started, lives:S.lives, level:S.level, score:S.score, correct:S.correct, wrong:S.wrong,
-      levelCorrect:S.levelCorrect, rot:mod(S.rot, 360), board:S.board, cats:S.cats, kos:S.kos, powers:S.powers, double:S.double, over:S.phase === 'over' }));
+      levelCorrect:S.levelCorrect, rot:mod(S.rot, 360), board:S.board, cats:S.cats, kos:S.kos, powers:S.powers, double:S.double, vs:S.vs, kosScore:S.kosScore, over:S.phase === 'over' }));
   }catch(e){}
 
   function start(data){
@@ -2443,6 +2665,7 @@ button{font:inherit;color:inherit}
       if(typeof data.kos === 'number') S.kos = Math.max(0, Math.min(KOS_GOAL, data.kos));
       if(data.powers && typeof data.powers === 'object') S.powers = Object.assign(freshPowers(), data.powers);
       S.double = !!data.double;
+      S.vs = !!data.vs && resumeBoard; S.kosScore = +data.kosScore || 0; S.turn = 'you';
       el.startOverlay.hidden = true;
       if(resumeBoard) toBoard(); else toWheel();
     } else {
