@@ -2071,6 +2071,7 @@ button{font:inherit;color:inherit}
       }
       renderHud(); popScore();
       if(S.vs && cur.isFinal){
+        if(v === 0){ el.feedback.className = ok ? 'feedback good' : 'feedback bad'; el.feedback.innerHTML = (ok ? 'Correct!' : (i === -1 ? "Time's up!" : 'Not quite.')) + ' You bet $0.' + (ok ? '' : `<small>The answer was ${cur.right.replace(/</g, '&lt;')}.</small>`); }
         el.feedback.innerHTML += '<small class="kos-line">Now let\'s see what Kos did…</small>';
       }
       el.nextBtn.textContent = cur.isFinal ? (S.vs ? "See Kos's answer" : 'See results') : boardNextLabel(false);
@@ -2404,30 +2405,22 @@ button{font:inherit;color:inherit}
     S.turn = 'you';
     if(!el.boardView.hidden && S.board) renderBoard();
     renderHud();
+    // Against Kos, both of you always play the final and bet anything up to what you have
     S.final = { kosBet: kosFinalBet(), youBet: 0, kosDone: false };
-    if(S.score > 0) return openWager('final');
-    // You have no money to bet, so you sit out and watch Kos
-    const f = S.board.final;
-    if(S.final.kosBet <= 0 && S.kosScore <= 0){ S.final.kosDone = true; return gameOver(); }
-    showQuestion(f.cat, f.qi, 0, `Final · Kos plays alone`, { value: S.final.kosBet, isFinal: true, kos: true });
-    el.feedback.textContent = "You need more than $0 to bet, so Kos plays the final alone. Kos is thinking…";
-    later(2200, kosAnswer);
+    openWager('final');
   }
   // After you answer the final, Kos's answer and secret bet are revealed
   function kosFinalReveal(){
     const cur = S.current, bet = S.final.kosBet;
     S.final.kosDone = true;
     const small = document.createElement('small');
-    if(S.kosScore <= 0){
-      small.textContent = 'Kos had no money to bet, so Kos sat this one out.';
-    } else {
-      const i = kosGuess(), ok = i === cur.correctIndex;
-      el.answers.querySelectorAll('.ans')[i].classList.add('kos-pick');
-      S.kosScore += ok ? bet : -bet;
-      const said = el.answers.querySelectorAll('.ans .txt')[i].textContent;
-      small.textContent = `Kos answered "${said}" and bet ${money(bet)}. ` + (ok ? `Kos got it. +${money(bet)}` : `Kos missed. −${money(bet)}`);
-      ok ? sfx.land() : sfx.tick();
-    }
+    const i = kosGuess(), ok = i === cur.correctIndex;
+    el.answers.querySelectorAll('.ans')[i].classList.add('kos-pick');
+    S.kosScore += ok ? bet : -bet;
+    const said = el.answers.querySelectorAll('.ans .txt')[i].textContent;
+    small.textContent = `Kos answered "${said}" and bet ${money(bet)}. ` +
+      (bet > 0 ? (ok ? `Kos got it. +${money(bet)}` : `Kos missed. −${money(bet)}`) : (ok ? 'Kos got it right.' : 'Kos got it wrong.'));
+    ok ? sfx.land() : sfx.tick();
     const old = el.feedback.querySelector('.kos-line'); if(old) old.remove();
     small.className = 'kos-line'; el.feedback.appendChild(small);
     renderHud(); popScore();
@@ -2513,7 +2506,9 @@ button{font:inherit;color:inherit}
       const cat = CATS[S.board.final.cat].name;
       el.wagerKicker.textContent = 'Final round';
       el.wagerTitle.textContent = cat;
-      el.wagerText.textContent = `One last question about ${cat}. Bet up to everything you have. You get ${FINAL_TIME} seconds.` + (S.vs ? ' Kos is making a secret bet too.' : '');
+      el.wagerText.textContent = S.vs && S.score <= 0
+        ? `One last question about ${cat}. You're on ${money(S.score)}, so you have nothing to bet, but you still get to answer. Kos is making a secret bet. You get ${FINAL_TIME} seconds.`
+        : `One last question about ${cat}. Bet up to everything you have. You get ${FINAL_TIME} seconds.` + (S.vs ? ' Kos is making a secret bet too.' : '');
       sfx.level();
     } else {
       const cat = CATS[S.board.cols[col].cat].name;
