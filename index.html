@@ -1050,7 +1050,7 @@ button{font:inherit;color:inherit}
       [3,"Who wrote the opera The Magic Flute?","Mozart","Verdi","Wagner","Puccini"],
       [3,"Whose debut album was Illmatic (1994)?","Nas","Jay-Z","The Notorious B.I.G.","Mobb Deep"],
       [3,"What does \"allegro\" mean in music?","Fast and lively","Slow","Loud","Softly"],
-      [3,"Who produced Dr. Dre's The Chronic?","Dr. Dre","DJ Premier","Pete Rock","Timbaland"],
+      [3,"Which rapper and producer made the 1992 album The Chronic?","Dr. Dre","Snoop Dogg","Ice Cube","Eazy-E"],
       [3,"Which South African singer was called Mama Africa?","Miriam Makeba","Brenda Fassie","Yvonne Chaka Chaka","Angélique Kidjo"],
       [4,"A chord of three notes stacked in thirds is called a what?","A triad","A trio","A tritone","An octave"],
       [4,"Counting black and white keys, how many different notes are in one octave on a piano?","12","8","7","10"],
@@ -1414,7 +1414,7 @@ button{font:inherit;color:inherit}
       [5,"In Akan belief, Asase Yaa is the goddess of what?","The earth","The sea","The moon","Rivers"],
       [5,"Which Aztec war and sun god was the patron of Tenochtitlan?","Huitzilopochtli","Quetzalcoatl","Tlaloc","Xipe Totec"],
       [2,"Which winged horse sprang from Medusa?","Pegasus","Arion","Sleipnir","Chiron"],
-      [2,"Who is the Greek god of the sun, music and prophecy?","Apollo","Helios","Hermes","Dionysus"],
+      [2,"Who is the Greek god of music, poetry and prophecy?","Apollo","Pan","Hermes","Dionysus"],
       [2,"Who is the queen of the Greek gods?","Hera","Athena","Demeter","Hestia"],
       [2,"Who is the Greek god of war?","Ares","Hephaestus","Hermes","Apollo"],
       [2,"What is King Arthur's sword called?","Excalibur","Durendal","Gram","Joyeuse"],
@@ -2046,9 +2046,11 @@ button{font:inherit;color:inherit}
     requestAnimationFrame(drawWheel);
   }
 
+  let spinToken = 0;   // bumps when a spin starts or a game is left, so an old spin can't keep turning the wheel
   function spin(){
     if(S.phase !== 'wheel') return;
     audio();
+    const myToken = ++spinToken;
     S.newStar = null;
     S.phase = 'spinning';
     el.spinBtn.disabled = true; el.hubBtn.disabled = true;
@@ -2064,6 +2066,7 @@ button{font:inherit;color:inherit}
     const dur = reduced ? 1200 : 4300, t0 = performance.now();
     let lastIdx = Math.floor(start / SEG);
     function frame(now){
+      if(myToken !== spinToken) return;
       const p = Math.min(1, (now - t0) / dur);
       const e = 1 - Math.pow(1 - p, 4);
       setRot(start + (end - start) * e);
@@ -2262,7 +2265,7 @@ button{font:inherit;color:inherit}
     resetMenu(); btn.classList.add('armed'); titleEl.textContent = title; subEl.textContent = sub;
     return false;
   }
-  function clearPlay(){ stopTimer(); OVERLAYS.forEach(k => { el[k].hidden = true; }); S.queue = []; }
+  function clearPlay(){ stopTimer(); spinToken++; bulbMode = 'idle'; OVERLAYS.forEach(k => { el[k].hidden = true; }); S.queue = []; }
   el.endBtn.addEventListener('click', e => {
     e.stopPropagation();
     if(!armed(el.endBtn, 'Tap again to end', 'Your current game stops here', el.endTitle, el.endSub)) return;
@@ -2381,6 +2384,7 @@ button{font:inherit;color:inherit}
   }
 
   function startMode(mode){
+    spinToken++; stopTimer();
     Object.assign(S, { mode, started:true, lives:MAX_LIVES, level:1, score:0, correct:0, wrong:0, levelCorrect:0,
                        heartBack:false, current:null, board:null, pendingWager:null,
                        kos:0, powers:freshPowers(), double:false, queue:[], usedPowers:{}, shieldOn:false, newStar:null });
@@ -2431,7 +2435,8 @@ button{font:inherit;color:inherit}
     if(Array.isArray(data.cats) && data.cats.length === 6 && data.cats.every(c => Q[c])) S.cats = data.cats;
     setRot(typeof data.rot === 'number' ? data.rot : 0);
     const resumeSpin = data.started && !data.over && data.mode !== 'board' && data.lives > 0;
-    const resumeBoard = data.started && !data.over && data.mode === 'board' && data.board && data.board.cols && data.board.cols.every(c => Q[c.cat] && c.tiles.every(t => Q[c.cat][t.qi]));
+    const resumeBoard = data.started && !data.over && data.mode === 'board' && data.board && data.board.cols && data.board.cols.every(c => Q[c.cat] && c.tiles.every(t => Q[c.cat][t.qi]))
+      && (!data.board.final || (Q[data.board.final.cat] && Q[data.board.final.cat][data.board.final.qi]));
     if(resumeSpin || resumeBoard){
       Object.assign(S, { mode:data.mode || 'spin', started:true, lives:data.lives || MAX_LIVES, level:data.level || 1, score:data.score || 0,
         correct:data.correct || 0, wrong:data.wrong || 0, levelCorrect:data.levelCorrect || 0, board:data.board || null });
