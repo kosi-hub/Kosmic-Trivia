@@ -2401,6 +2401,9 @@ button{font:inherit;color:inherit}
     return k;                                                                         // behind: all in
   }
   function startFinalVs(){
+    S.turn = 'you';
+    if(!el.boardView.hidden && S.board) renderBoard();
+    renderHud();
     S.final = { kosBet: kosFinalBet(), youBet: 0, kosDone: false };
     if(S.score > 0) return openWager('final');
     // You have no money to bet, so you sit out and watch Kos
@@ -2455,7 +2458,7 @@ button{font:inherit;color:inherit}
     resetMenu(); btn.classList.add('armed'); titleEl.textContent = title; subEl.textContent = sub;
     return false;
   }
-  function clearPlay(){ stopTimer(); spinToken++; kosToken++; bulbMode = 'idle'; OVERLAYS.forEach(k => { el[k].hidden = true; }); S.queue = []; }
+  function clearPlay(){ stopTimer(); spinToken++; kosToken++; if(S.vs) S.turn = 'you'; bulbMode = 'idle'; OVERLAYS.forEach(k => { el[k].hidden = true; }); S.queue = []; }
   el.endBtn.addEventListener('click', e => {
     e.stopPropagation();
     if(!armed(el.endBtn, 'Tap again to end', 'Your current game stops here', el.endTitle, el.endSub)) return;
